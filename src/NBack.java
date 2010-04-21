@@ -17,23 +17,23 @@ public class NBack implements ActionListener
 {
 
 	public static final int ACTION_TICK = 1;
-	public static final int ACTION_COMPLETE = 2;
+	public static final int ACTION_FOCUS = 2;
+	public static final int ACTION_COMPLETE = 3;
 	
 	private ArrayList<ActionListener> listeners = new ArrayList<ActionListener>( 1 );
 	private ArrayList<Integer> history = new ArrayList<Integer>();
 	private ArrayList<Result> results = new ArrayList<Result>();
+	
+	private NBackProperties properties;
+	
 	private boolean hasStarted = false;
 	private boolean hasResultForThisTime = false;
-	
-	private int propN, propTotalNumbers, propTotalTime, propTimeBetweenNumbers;
-	private float propTargetPercentage;
-	private long propRandomSeed;
-	private String propSaveDirectory;
 	
 	private int currentNumber;
 	private boolean currentIsTarget;
 	private long timeNumberShown;
 	private long timeStartedTest;
+	private boolean isFocusing;
 
 	private Timer timer;
 	private Random random;
@@ -41,18 +41,44 @@ public class NBack implements ActionListener
 	public NBack()
 	{
 	}
-	
-	public void submitResult( boolean isTarget )
+
+	public void start()
 	{
-		if ( !this.hasResultForThisTime )
+		if ( !this.hasStarted )
+		{
+			this.properties = new NBackProperties();
+			this.properties.read();
+			
+			random = new Random( this.properties.getRandomSeed() );
+			this.hasStarted = true;
+			this.timer = new Timer( this.properties.getTimeBetweenNumbers(), this );
+			this.timer.setRepeats( true );
+			this.timeStartedTest = System.currentTimeMillis();
+			this.timer.start();
+		}
+	}
+
+	private void submitResult( boolean isTarget, boolean wasForced )
+	{
+		if ( !this.isFocusing )
 		{
 			int timeFromStart = (int)( System.currentTimeMillis() - this.timeStartedTest );
 			int timeFromNumberShown = (int)( System.currentTimeMillis() - this.timeNumberShown );
-			this.results.add( new Result( currentNumber, isTarget == currentIsTarget, currentIsTarget, timeFromStart, timeFromNumberShown ) );
-			this.hasResultForThisTime = true;
-			this.timer.setInitialDelay( 0 );
-			this.timer.restart();
+			this.results.add( new Result( currentNumber, isTarget == currentIsTarget, currentIsTarget, wasForced, timeFromStart, timeFromNumberShown ) );
+			
+			if ( !wasForced && !this.hasResultForThisTime )
+			{
+				this.hasResultForThisTime = true;
+				this.timer.setInitialDelay( 0 );
+				this.timer.restart();
+			
+			}
 		}
+	}
+	
+	public void submitResult( boolean isTarget )
+	{
+		this.submitResult( isTarget, false );
 	}
 
 	public boolean isCurrentlyTarget() { return this.currentIsTarget; }
@@ -61,7 +87,7 @@ public class NBack implements ActionListener
 	
 	public void saveResults( String participantId )
 	{
-		String path = this.propSaveDirectory + File.separatorChar + "nback." + participantId + ".csv";
+		String path = this.properties.getSaveDirectory() + File.separatorChar + "nback." + participantId + ".csv";
 		System.out.println( "\nSaving file to: " + path );
 		try
 		{
@@ -94,29 +120,13 @@ public class NBack implements ActionListener
 		}
 	}
 	
-	public void start()
-	{
-		if ( !this.hasStarted )
-		{
-			this.readProperties();
-			random = new Random( this.propRandomSeed );
-			this.hasStarted = true;
-			this.timer = new Timer( this.propTimeBetweenNumbers, this );
-			this.timer.setRepeats( true );
-			this.timeStartedTest = System.currentTimeMillis();
-			this.timer.start();
-		}
-	}
-
 	@Override
 	public void actionPerformed( ActionEvent e ) 
 	{
 		// If the user didn't submit an answer, then force an answer from them...
 		if ( !hasResultForThisTime && history.size() > 0 )
 		{
-			int timeFromStart = (int)( System.currentTimeMillis() - this.timeStartedTest );
-			int timeFromNumberShown = (int)( System.currentTimeMillis() - this.timeNumberShown );
-			results.add( new Result( currentNumber, false, currentIsTarget, true, timeFromStart, timeFromNumberShown ) );
+			this.submitResult( false, true );
 		}
 		else
 		{
@@ -124,22 +134,44 @@ public class NBack implements ActionListener
 		}
 	
 		// When we are done, stop the timer, alert the listeners, and then return.
-		if ( this.history.size() >= this.propTotalNumbers )
+		if ( this.history.size() >= this.properties.getTotalNumbers() )
 		{
 			this.dispatchEvent( ACTION_COMPLETE );
 			this.timer.stop();
 			return;
 		}
 		
+		// If we hit the amount of numbers that we need to focus, then we do that...
+		int numbersSinceLastFocus = this.history.size() % this.properties.getNumbersBetweenFocus();
+		if ( this.properties.requiresFocus() 
+			&& !this.isFocusing
+			&& numbersSinceLastFocus == this.properties.getNumbersBetweenFocus() - 1 )
+		{
+			this.isFocusing = true;
+			this.timer.setInitialDelay( this.properties.getFocusTime() );
+			this.timer.restart();
+			System.out.print( " FOCUS" );
+			this.dispatchEvent( ACTION_FOCUS );
+			return;
+		}
+		// And if we have just returned from a focus, then we need to reset the focus counter
+		// and reassign an appropriate timeout to the timer...
+		else if ( this.isFocusing )
+		{
+			this.isFocusing = false;
+			this.timer.setDelay( this.properties.getTimeBetweenNumbers() );
+		}
+		
+		// Otherwise we want to set up a new number...
 		int targetNumber = -1;
 		boolean makeTarget = false;
 		int number;
 		
 		// Cannot create a target unless there is enough items in the history to go back that far...
-		if ( history.size() > this.propN )
+		if ( history.size() > this.properties.getN() )
 		{
-			makeTarget = this.random.nextFloat() < this.propTargetPercentage;
-			targetNumber = history.get( history.size() - this.propN );
+			makeTarget = this.random.nextFloat() < this.properties.getTargetPercentage();
+			targetNumber = history.get( history.size() - this.properties.getN() );
 		}
 		
 		if ( makeTarget )
@@ -175,49 +207,6 @@ public class NBack implements ActionListener
 		{
 			listener.actionPerformed( new ActionEvent( this, actionId, "" ) );
 		}	
-	}
-	
-	/**
-	 * Check the nback.properties file and assign the properties from it to the appropriate member variables.
-	 */
-	private void readProperties()
-	{
-		Properties properties = new Properties();
-		try
-		{
-			properties.load( new FileReader( "nback.properties" ) );
-		}
-		catch( IOException ioe )
-		{
-			JOptionPane.showMessageDialog( null, "Error reading configuration file 'nback.properties': \n" + ioe.getMessage() );
-		}
-
-		String n = properties.getProperty( "n" );
-		String totalNumbers = properties.getProperty( "totalNumbers" );
-		String totalTime = properties.getProperty( "totalTime" );
-		String targetPercentage = properties.getProperty( "targetPercentage" );
-		String timeBetweenNumbers = properties.getProperty( "timeBetweenNumbers" );
-		String randomSeed = properties.getProperty( "randomSeed" );
-		String saveDirectory = properties.getProperty( "saveDirectory" );
-
-		this.propN = ( n != null ) ? Integer.parseInt( n ) : 3;
-		this.propTotalNumbers = ( totalNumbers != null ) ? Integer.parseInt( totalNumbers ) : 20;
-		this.propTotalTime = ( totalTime != null ) ? Integer.parseInt( properties.getProperty( "totalTime" ) ) : 0;
-		this.propTargetPercentage = ( targetPercentage != null ) ? ( Float.parseFloat( targetPercentage ) / 100 ) : 0.10f;
-		this.propTimeBetweenNumbers = ( timeBetweenNumbers != null ) ? Integer.parseInt( timeBetweenNumbers ) : 1000;
-		this.propRandomSeed = ( randomSeed != null ) ? Integer.parseInt( randomSeed ) : System.currentTimeMillis();
-		this.propSaveDirectory = ( saveDirectory != null ) ? saveDirectory : System.getProperty( "user.home" );
-		
-		if ( this.propTotalTime != 0 )
-		{
-			this.propTotalNumbers = this.propTotalTime * 1000 / this.propTimeBetweenNumbers;
-		}
-
-		System.out.println( "Properties:" );
-		System.out.println( "  n = " + this.propN );
-		System.out.println( "  totalNumbers = " + this.propTotalNumbers );
-		System.out.println( "  propTargetPercentage = " + this.propTargetPercentage );
-		System.out.println( "  timeBetweenNumbers = " + this.propTimeBetweenNumbers );
 	}
 		
 }

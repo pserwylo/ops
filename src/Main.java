@@ -1,3 +1,4 @@
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -8,26 +9,36 @@ import java.awt.event.KeyListener;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 
 public class Main extends JFrame implements KeyListener, ActionListener
 {
 
-	private JLabel nBackLabel;
+	private JLabel nBackLabel, focusLabel;
 	private NBack nback;
 	private String userId;
 	
 	public Main( String userId )
 	{
 		this.userId = userId;
+
+		JPanel panel = new JPanel();
+		panel.setLayout( new FlowLayout( FlowLayout.CENTER ) );
 		
 		this.nBackLabel = new JLabel( "NBack" );
 		this.nBackLabel.setFont( new Font( Font.SERIF, Font.BOLD, 50 ) );
 		this.nBackLabel.setHorizontalAlignment( JLabel.CENTER );
+		panel.add( this.nBackLabel );
+		
+		this.focusLabel = new JLabel( "" );
+		this.focusLabel.setFont( new Font( Font.SANS_SERIF, Font.BOLD, 100 ) );
+		this.focusLabel.setHorizontalAlignment( JLabel.CENTER );
+		panel.add( this.focusLabel );
 		
 		this.addKeyListener( this );
 		this.setLayout( new GridBagLayout() );
-		this.add( this.nBackLabel, new GridBagConstraints() );
+		this.add( panel, new GridBagConstraints() );
 		this.setSize( 800, 300 );
 		this.setVisible( true );
 		this.setDefaultCloseOperation( EXIT_ON_CLOSE );
@@ -54,6 +65,12 @@ public class Main extends JFrame implements KeyListener, ActionListener
 		if ( e.getID() == NBack.ACTION_TICK )
 		{
 			this.nBackLabel.setText( this.nback.getCurrentNumber() + "" );
+			this.focusLabel.setText( "" );
+		}
+		else if ( e.getID() == NBack.ACTION_FOCUS )
+		{
+			this.nBackLabel.setText( "" );
+			this.focusLabel.setText( "X" );
 		}
 		else if ( e.getID() == NBack.ACTION_COMPLETE )
 		{
