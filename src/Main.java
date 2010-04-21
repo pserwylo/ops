@@ -70,7 +70,7 @@ public class Main extends JFrame implements KeyListener, ActionListener
 		else if ( e.getID() == NBack.ACTION_FOCUS )
 		{
 			this.nBackLabel.setText( "" );
-			this.focusLabel.setText( "X" );
+			this.focusLabel.setText( "+" );
 		}
 		else if ( e.getID() == NBack.ACTION_COMPLETE )
 		{

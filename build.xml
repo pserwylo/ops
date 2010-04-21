@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="nback" name="Create Runnable Jar for Project nback">
-
+<project default="create_run_jar" name="Create Runnable Jar for Project nback">
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
-    <target name="jar">
-        <jar destfile="bin/nback.jar" filesetmanifest="mergewithoutmain">
+    <target name="create_run_jar">
+        <jar destfile="/home/peter/code/nback/bin/nback.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="Main"/>
-                <attribute name="Class-Path" value="src"/>
+                <attribute name="Class-Path" value="."/>
             </manifest>
-            <fileset dir="build"/>
+            <fileset dir="/home/peter/workspace.galileo/nback/bin"/>
         </jar>
     </target>
-
 </project>
