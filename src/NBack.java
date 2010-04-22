@@ -1,3 +1,25 @@
+/*
+ * Copyright (c) 2010 Peter Serwylo
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
@@ -40,18 +62,18 @@ public class NBack implements ActionListener
 	
 	public NBack()
 	{
+		this.properties = new NBackProperties();
+		this.properties.read();
 	}
-
+	
 	public void start()
 	{
 		if ( !this.hasStarted )
 		{
-			this.properties = new NBackProperties();
-			this.properties.read();
-			
 			random = new Random( this.properties.getRandomSeed() );
 			this.hasStarted = true;
 			this.timer = new Timer( this.properties.getTimeBetweenNumbers(), this );
+			this.timer.setInitialDelay( 0 );
 			this.timer.setRepeats( true );
 			this.timeStartedTest = System.currentTimeMillis();
 			this.timer.start();
