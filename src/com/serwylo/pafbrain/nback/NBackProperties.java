@@ -1,3 +1,4 @@
+package com.serwylo.pafbrain.nback;
 /*
  * Copyright (c) 2010 Peter Serwylo
  * 
@@ -29,7 +30,7 @@ import javax.swing.JOptionPane;
 
 /**
  * Reads and saves a set of properties to do with the NBack test from/to a file.
- * @author Peter Serwylo (peter@serwylo.com)
+ * @author Peter Serwylo
  */
 public class NBackProperties 
 {
@@ -37,38 +38,38 @@ public class NBackProperties
 	public static final int DEFAULT_N = 3;
 	public static final int DEFAULT_TOTAL_NUMBERS = 20;
 	public static final int DEFAULT_TOTAL_TIME = 0;
-	public static final int DEFAULT_TIME_BETWEEN_NUMBERS = 1000;
+	public static final int DEFAULT_TIME_BETWEEN_NUMBERS = 0;
 	public static final int DEFAULT_NUMBERS_BETWEEN_FOCUS = 0;
 	public static final int DEFAULT_FOCUS_TIME = 0;
 	public static final float DEFAULT_TARGET_PERCENTAGE = 0.1f;
 	public static final long DEFAULT_RANDOM_SEED = System.currentTimeMillis();
 	public static final String DEFAULT_SAVE_DIRECTORY = System.getProperty( "user.home" );
+	public static final int DEFAULT_FOCUS_TICKS = 2;
 	
 	private int propN, propTotalNumbers, propTotalTime, propTimeBetweenNumbers, 
-		propNumbersBetweenFocus, propFocusTime;
+		propNumbersBetweenFocus, propFocusTime, propFocusTicks;
 	private float propTargetPercentage;
 	private long propRandomSeed;
 	private String propSaveDirectory;
 
 	public int getN() { return this.propN; }
-	
 	public int getTotalNumbers() { return this.propTotalNumbers; }
-	
 	public int getTotalTime() { return this.propTotalTime; }
-	
 	public int getTimeBetweenNumbers() { return this.propTimeBetweenNumbers; }
-	
 	public int getNumbersBetweenFocus() { return this.propNumbersBetweenFocus; }
-	
 	public int getFocusTime() { return this.propFocusTime; }
-	
 	public float getTargetPercentage() { return this.propTargetPercentage; }
-	
 	public long getRandomSeed() { return this.propRandomSeed; }
-	
 	public String getSaveDirectory() { return this.propSaveDirectory; }
+	public int getFocusTicks() { return this.propFocusTicks; }
 	
-	public boolean requiresFocus() { return this.propFocusTime > 0 && this.propNumbersBetweenFocus > 0; }
+	
+	public boolean isTimed() { return this.propTimeBetweenNumbers > 0; }
+	
+	public boolean requiresFocus() 
+	{ 
+		return ( this.propFocusTime > 0 || this.propFocusTicks > 0 ) && this.propNumbersBetweenFocus > 0; 
+	}
 
 
 	/**
@@ -95,6 +96,7 @@ public class NBackProperties
 		String saveDirectory = properties.getProperty( "saveDirectory" );
 		String numbersBetweenFocus = properties.getProperty( "numbersBetweenFocus" );
 		String focusTime = properties.getProperty( "focusTime" );
+		String focusTicks = properties.getProperty( "focusTicks" );
 
 		this.propN = ( n != null ) ? Integer.parseInt( n ) : DEFAULT_N;
 		this.propTotalNumbers = ( totalNumbers != null ) ? Integer.parseInt( totalNumbers ) : DEFAULT_TOTAL_NUMBERS;
@@ -105,6 +107,7 @@ public class NBackProperties
 		this.propSaveDirectory = ( saveDirectory != null ) ? saveDirectory : DEFAULT_SAVE_DIRECTORY;
 		this.propNumbersBetweenFocus = ( numbersBetweenFocus != null ) ? Integer.parseInt( numbersBetweenFocus ) : DEFAULT_NUMBERS_BETWEEN_FOCUS;
 		this.propFocusTime = ( focusTime != null ) ? Integer.parseInt( focusTime ) : DEFAULT_FOCUS_TIME;
+		this.propFocusTicks = ( focusTicks != null ) ? Integer.parseInt( focusTicks ) : DEFAULT_FOCUS_TICKS;
 		
 		File saveDirectoryFile = new File( this.propSaveDirectory );
 		if ( !saveDirectoryFile.exists() || !saveDirectoryFile.isDirectory() )

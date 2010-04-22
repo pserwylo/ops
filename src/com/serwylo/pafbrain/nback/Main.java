@@ -1,3 +1,5 @@
+package com.serwylo.pafbrain.nback;
+
 /*
  * Copyright (c) 2010 Peter Serwylo
  * 
@@ -20,31 +22,22 @@
  * THE SOFTWARE.
  */
 
-public class Result 
+import com.serwylo.pafbrain.nback.gui.NBackGui;
+import javax.swing.JOptionPane;
+
+public class Main
 {
 
-	public long time;
-	public int timeFromStartOfTest;
-	public int timeFromNumberShown;
-	public int number;
-	public boolean wasSuccessfull;
-	public boolean wasTarget;
-	public boolean timedOut;
-	
-	public Result( int number, boolean wasSuccessfull, boolean wasTarget, int timeFromStartOfTest, int timeFromNumberShown )
+	public static void main( String[] args )
 	{
-		this( number, wasSuccessfull, wasTarget, false, timeFromStartOfTest, timeFromNumberShown );
-	}
-	
-	public Result( int number, boolean wasSuccessfull, boolean wasTarget, boolean timedOut, int timeFromStartOfTest, int timeFromNumberShown )
-	{
-		this.time = System.currentTimeMillis();
-		this.number = number;
-		this.wasSuccessfull = wasSuccessfull;
-		this.wasTarget = wasTarget;
-		this.timedOut = timedOut;
-		this.timeFromStartOfTest = timeFromStartOfTest;
-		this.timeFromNumberShown = timeFromNumberShown;
+		String userId;
+		do
+		{
+			userId = JOptionPane.showInputDialog( "Please enter the participant code.", "A1" );
+		} while ( userId.trim().length() == 0 );
+		
+		NBack nback = new NBack();
+		new NBackGui( nback, userId );
 	}
 	
 }

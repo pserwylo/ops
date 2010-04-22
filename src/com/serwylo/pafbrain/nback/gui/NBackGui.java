@@ -1,3 +1,4 @@
+package com.serwylo.pafbrain.nback.gui;
 /*
  * Copyright (c) 2010 Peter Serwylo
  * 
@@ -20,32 +21,25 @@
  * THE SOFTWARE.
  */
 
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.*;
+import java.awt.event.*;
 
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
+import javax.swing.*;
+import com.serwylo.pafbrain.nback.*;
 
 
-public class Main extends JFrame implements KeyListener, ActionListener
+@SuppressWarnings("serial")
+public class NBackGui extends JFrame implements KeyListener, ActionListener, MouseListener
 {
 
 	private JLabel nBackLabel, focusLabel;
 	private NBack nback;
 	private String userId;
 	
-	public Main( String userId )
+	public NBackGui( NBack nbackInstance, String userId )
 	{
+		this.nback = nbackInstance;
+		this.nback.addActionListener( this );
 		this.userId = userId;
 
 		JPanel panel = new JPanel();
@@ -62,38 +56,26 @@ public class Main extends JFrame implements KeyListener, ActionListener
 		panel.add( this.focusLabel );
 		
 		this.addKeyListener( this );
-		this.addMouseListener
-		( 
-			new MouseAdapter() 
-			{
-				public void mouseClicked( MouseEvent event )
-				{
-					nback.start();
-				}
-			}
-		);
+		this.addMouseListener( this );
+		
 		this.setLayout( new GridBagLayout() );
 		this.add( panel, new GridBagConstraints() );
+
 		this.setSize( 800, 300 );
 		this.setVisible( true );
+		this.setExtendedState( JFrame.MAXIMIZED_BOTH );
 		this.setDefaultCloseOperation( EXIT_ON_CLOSE );
 		
-		nback = new NBack();
-		nback.addActionListener( this );
 	}
 	
-	public static void main( String[] args )
-	{
-		String userId;
-		do
-		{
-			userId = JOptionPane.showInputDialog( "Please enter the participant code.", "A1" );
-		} while ( userId.trim().length() == 0 );
-		
-		new Main( userId );
-	}
-	
-	
+	/**
+	 * Receives events from the NBack object, and responds by showing appropriate 
+	 * information in the GUI. 
+	 * 	An ACTION_TICK will display the current number to the user
+	 * 	An ACTION_FOCUS will display a + in the centre of the screen
+	 * 	An ACTION_COMPLETE will tell the test to save its results, and then 
+	 * 	display a completed message.
+	 */
 	public void actionPerformed( ActionEvent e )
 	{
 		if ( e.getID() == NBack.ACTION_TICK )
@@ -109,11 +91,17 @@ public class Main extends JFrame implements KeyListener, ActionListener
 		else if ( e.getID() == NBack.ACTION_COMPLETE )
 		{
 			this.nback.saveResults( this.userId );
-			System.exit( 1 );
+			this.nBackLabel.setText( "Test Complete" );
 		}
 	}
 	
 
+	/**
+	 * If keyboard is enabled, then the user can select whether an item is a 
+	 * target or not by pressing Enter of Space.
+	 * Regardless of whether the keyboard is enabled, pressing escape will 
+	 * prompt the user to save results before closing the application.
+	 */
 	@Override
 	public void keyPressed( KeyEvent e ) 
 	{
@@ -129,21 +117,48 @@ public class Main extends JFrame implements KeyListener, ActionListener
 		}
 		else if ( e.getKeyCode() == KeyEvent.VK_ESCAPE )
 		{
-			this.nback.saveResults( this.userId );
+			if ( this.nback.hasStarted() && !this.nback.isCompleted() )
+			{
+				int result = JOptionPane.showConfirmDialog( this, "Save results?" );
+				if ( result == JOptionPane.OK_OPTION )
+				{
+					this.nback.saveResults( this.userId );
+				}
+				this.nback.stop();
+			}
 			System.exit( 1 );
 		}
 	}
 
 	@Override
-	public void keyReleased( KeyEvent e ) 
+	public void mouseClicked(MouseEvent e) 
 	{
-		
+		if ( !this.nback.hasStarted() )
+		{
+			this.nback.start();
+		}
+		else if ( !this.nback.isCompleted() && !this.nback.getProperties().isTimed() )
+		{
+			this.nback.submitResult( false, true );
+		}
 	}
 
 	@Override
-	public void keyTyped(KeyEvent e) 
-	{
-		
-	}
+	public void keyReleased( KeyEvent e ) {}
+
+	@Override
+	public void keyTyped( KeyEvent e ) {}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {}
+
+	@Override
+	public void mouseExited(MouseEvent e) {}
+
+	@Override
+	public void mousePressed(MouseEvent e) {}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {}
 
 }

@@ -1,3 +1,4 @@
+package com.serwylo.pafbrain.nback;
 /*
  * Copyright (c) 2010 Peter Serwylo
  * 
@@ -24,18 +25,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Properties;
 import java.util.Random;
 
 import javax.swing.JOptionPane;
 import javax.swing.Timer;
 
 
-public class NBack implements ActionListener
+public class NBack
 {
 
 	public static final int ACTION_TICK = 1;
@@ -50,11 +49,14 @@ public class NBack implements ActionListener
 	
 	private boolean hasStarted = false;
 	private boolean hasResultForThisTime = false;
+	private boolean isCompleted = false;
 	
 	private int currentNumber;
 	private boolean currentIsTarget;
 	private long timeNumberShown;
 	private long timeStartedTest;
+	private int numbersSinceLastFocus;
+	private int currentFocusDuration;
 	private boolean isFocusing;
 
 	private Timer timer;
@@ -72,28 +74,63 @@ public class NBack implements ActionListener
 		{
 			random = new Random( this.properties.getRandomSeed() );
 			this.hasStarted = true;
-			this.timer = new Timer( this.properties.getTimeBetweenNumbers(), this );
-			this.timer.setInitialDelay( 0 );
-			this.timer.setRepeats( true );
 			this.timeStartedTest = System.currentTimeMillis();
-			this.timer.start();
+			
+			if ( this.properties.isTimed() )
+			{
+				this.timer = new Timer
+				( 
+					this.properties.getTimeBetweenNumbers(), 
+					new ActionListener() 
+					{	
+						public void actionPerformed( ActionEvent e ) { nextNumber(); }
+					}
+				);
+				this.timer.setInitialDelay( 0 );
+				this.timer.setRepeats( true );
+				this.timer.start();
+			}
+			else
+			{
+				// Manually start the first next number if not timed...
+				this.nextNumber();
+			}
+		}
+	}
+	
+	/**
+	 * Prevents the test from proceeding by stopping the timer.
+	 * No more events will be dispatched once stopped.
+	 */
+	public void stop()
+	{
+		if ( this.hasStarted && this.properties.isTimed() )
+		{
+			this.timer.stop();
 		}
 	}
 
-	private void submitResult( boolean isTarget, boolean wasForced )
+	public void submitResult( boolean isTarget, boolean wasForced )
 	{
-		if ( !this.isFocusing )
+		if ( this.hasStarted && ( ! this.isFocusing || ! this.properties.isTimed() ) )
 		{
 			int timeFromStart = (int)( System.currentTimeMillis() - this.timeStartedTest );
 			int timeFromNumberShown = (int)( System.currentTimeMillis() - this.timeNumberShown );
 			this.results.add( new Result( currentNumber, isTarget == currentIsTarget, currentIsTarget, wasForced, timeFromStart, timeFromNumberShown ) );
 			
-			if ( !wasForced && !this.hasResultForThisTime )
+			if ( ! this.hasResultForThisTime && ( ! wasForced || ! this.properties.isTimed() ) )
 			{
 				this.hasResultForThisTime = true;
-				this.timer.setInitialDelay( 0 );
-				this.timer.restart();
-			
+				
+				if ( this.properties.isTimed() )
+				{
+					this.timer.setInitialDelay( 0 );
+					this.timer.restart();
+				}
+				else
+				{
+					this.nextNumber();
+				}
 			}
 		}
 	}
@@ -103,10 +140,13 @@ public class NBack implements ActionListener
 		this.submitResult( isTarget, false );
 	}
 
+	public boolean hasStarted() { return this.hasStarted; }
+	public boolean isCompleted() { return this.isCompleted; }
 	public boolean isCurrentlyTarget() { return this.currentIsTarget; }
 	public int getCurrentNumber() { return this.currentNumber; }
 	public void addActionListener( ActionListener listener ) { this.listeners.add( listener ); }
-	
+	public NBackProperties getProperties() { return this.properties; }
+		
 	public void saveResults( String participantId )
 	{
 		String path = this.properties.getSaveDirectory() + File.separatorChar + "nback." + participantId + ".csv";
@@ -142,11 +182,15 @@ public class NBack implements ActionListener
 		}
 	}
 	
-	@Override
-	public void actionPerformed( ActionEvent e ) 
+	/**
+	 * Proceed the test by selecting the next number and displaying it.
+	 * If we are properties.getNumbersBetweenFocus() from the last focus, we will 
+	 * for-go selecting a number in favour of pausing and focusing.
+	 */
+	public void nextNumber() 
 	{
 		// If the user didn't submit an answer, then force an answer from them...
-		if ( !hasResultForThisTime && history.size() > 0 )
+		if ( ! hasResultForThisTime && history.size() > 0 )
 		{
 			this.submitResult( false, true );
 		}
@@ -159,21 +203,35 @@ public class NBack implements ActionListener
 		if ( this.history.size() >= this.properties.getTotalNumbers() )
 		{
 			this.dispatchEvent( ACTION_COMPLETE );
-			this.timer.stop();
+			this.stop();
+			this.isCompleted = true;
 			return;
 		}
 		
 		// If we hit the amount of numbers that we need to focus, then we do that...
-		int numbersSinceLastFocus = this.history.size() % this.properties.getNumbersBetweenFocus();
 		if ( this.properties.requiresFocus() 
-			&& !this.isFocusing
-			&& numbersSinceLastFocus == this.properties.getNumbersBetweenFocus() - 1 )
+			&& ! this.isFocusing
+			&& this.numbersSinceLastFocus == this.properties.getNumbersBetweenFocus() )
 		{
 			this.isFocusing = true;
-			this.timer.setInitialDelay( this.properties.getFocusTime() );
-			this.timer.restart();
-			System.out.print( " FOCUS" );
+			this.currentFocusDuration = 1;
+			
+			if ( this.properties.isTimed() )
+			{
+				this.timer.setInitialDelay( this.properties.getFocusTime() );
+				this.timer.restart();
+			}
+
+			this.numbersSinceLastFocus = 0;
+			System.out.print( " FOCUS+" );
 			this.dispatchEvent( ACTION_FOCUS );
+			return;
+		}
+		// If in manual mode, then make sure we allow a number of ticks before stopping focusing..
+		else if ( this.isFocusing && !this.properties.isTimed() && this.currentFocusDuration < this.properties.getFocusTicks() )
+		{
+			this.currentFocusDuration ++;
+			System.out.print( "+" );
 			return;
 		}
 		// And if we have just returned from a focus, then we need to reset the focus counter
@@ -181,7 +239,11 @@ public class NBack implements ActionListener
 		else if ( this.isFocusing )
 		{
 			this.isFocusing = false;
-			this.timer.setDelay( this.properties.getTimeBetweenNumbers() );
+			if ( this.properties.isTimed() )
+			{
+				this.timer.setDelay( this.properties.getTimeBetweenNumbers() );
+			}
+			// Don't return, because we now want to select a number to display to the user...
 		}
 		
 		// Otherwise we want to set up a new number...
@@ -189,10 +251,16 @@ public class NBack implements ActionListener
 		boolean makeTarget = false;
 		int number;
 		
-		// Cannot create a target unless there is enough items in the history to go back that far...
+		// Cannot create a target unless there is enough items in the history to go back that far.
 		if ( history.size() > this.properties.getN() )
 		{
-			makeTarget = this.random.nextFloat() < this.properties.getTargetPercentage();
+			// Do not allow targets to span over a focus period (if enabled).
+			// Also don't allow a target if it results in two of the same numbers in a row...
+			if ( ( ! this.properties.requiresFocus() || this.numbersSinceLastFocus > this.properties.getN() ) 
+				&& targetNumber != history.get( history.size() - 1 ) )
+			{
+				makeTarget = this.random.nextFloat() < this.properties.getTargetPercentage();
+			}
 			targetNumber = history.get( history.size() - this.properties.getN() );
 		}
 		
@@ -202,6 +270,8 @@ public class NBack implements ActionListener
 		}
 		else
 		{
+			// We don't want to show a number which clashes with the previous one,
+			// or which is a target...
 			do 
 			{
 				number = (int)( ( this.random.nextFloat() * 10000 ) / 1000 );
@@ -212,6 +282,7 @@ public class NBack implements ActionListener
 		this.currentNumber = number;
 		this.timeNumberShown = System.currentTimeMillis();
 		this.history.add( number );
+		this.numbersSinceLastFocus ++;
 		
 		System.out.print( " " + number + ( makeTarget ? "T" : "" ) );
 		
@@ -230,5 +301,5 @@ public class NBack implements ActionListener
 			listener.actionPerformed( new ActionEvent( this, actionId, "" ) );
 		}	
 	}
-		
+
 }
