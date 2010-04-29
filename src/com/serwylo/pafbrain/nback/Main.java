@@ -22,6 +22,10 @@ package com.serwylo.pafbrain.nback;
  * THE SOFTWARE.
  */
 
+import com.serwylo.pafbrain.nback.core.AbstractNBack;
+import com.serwylo.pafbrain.nback.core.InteractiveNBack;
+import com.serwylo.pafbrain.nback.core.NBackProperties;
+import com.serwylo.pafbrain.nback.core.TimedNBack;
 import com.serwylo.pafbrain.nback.gui.NBackGui;
 import javax.swing.JOptionPane;
 
@@ -36,7 +40,18 @@ public class Main
 			userId = JOptionPane.showInputDialog( "Please enter the participant code.", "A1" );
 		} while ( userId.trim().length() == 0 );
 		
-		NBack nback = new NBack();
+		NBackProperties properties = new NBackProperties();
+		
+		try
+		{
+			properties.read();
+		}
+		catch ( Exception e )
+		{
+			JOptionPane.showMessageDialog( null, "Error reading properties file:\n" + e.getMessage() + "\nWill attempt to continue anyway." );
+		}
+		
+		AbstractNBack nback = properties.isTimed() ? new TimedNBack( properties ) : new InteractiveNBack( properties );
 		new NBackGui( nback, userId );
 	}
 	

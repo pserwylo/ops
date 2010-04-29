@@ -1,4 +1,4 @@
-package com.serwylo.pafbrain.nback;
+package com.serwylo.pafbrain.nback.core;
 /*
  * Copyright (c) 2010 Peter Serwylo
  * 

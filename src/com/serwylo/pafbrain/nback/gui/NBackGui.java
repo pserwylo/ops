@@ -23,9 +23,15 @@ package com.serwylo.pafbrain.nback.gui;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import javax.swing.*;
-import com.serwylo.pafbrain.nback.*;
+
+import com.serwylo.pafbrain.nback.core.AbstractNBack;
+import com.serwylo.pafbrain.nback.io.SerializeResults;
 
 
 @SuppressWarnings("serial")
@@ -33,10 +39,10 @@ public class NBackGui extends JFrame implements KeyListener, ActionListener, Mou
 {
 
 	private JLabel nBackLabel, focusLabel;
-	private NBack nback;
+	private AbstractNBack nback;
 	private String userId;
 	
-	public NBackGui( NBack nbackInstance, String userId )
+	public NBackGui( AbstractNBack nbackInstance, String userId )
 	{
 		this.nback = nbackInstance;
 		this.nback.addActionListener( this );
@@ -67,6 +73,22 @@ public class NBackGui extends JFrame implements KeyListener, ActionListener, Mou
 		this.setDefaultCloseOperation( EXIT_ON_CLOSE );
 		
 	}
+
+	public void saveResults( String participantId )
+	{
+		String path = this.nback.getProperties().getSaveDirectory() + File.separatorChar + "nback." + participantId + ".csv";
+		System.out.println( "\nSaving file to: " + path );
+		try
+		{
+			BufferedWriter output = new BufferedWriter( new FileWriter( path ) );
+			output.write( SerializeResults.serializeResultList( "number,time,timedOut,timeFromNumberShown,timeFromStartOfTest,wasSuccessfull,wasTarget", this.nback.getResults() ) );
+			output.close();
+		}
+		catch ( IOException ioe )
+		{
+			JOptionPane.showMessageDialog( null, "Error saving results to file '" + path + "'\n\n" + ioe.getMessage() );
+		}
+	}
 	
 	/**
 	 * Receives events from the NBack object, and responds by showing appropriate 
@@ -78,19 +100,19 @@ public class NBackGui extends JFrame implements KeyListener, ActionListener, Mou
 	 */
 	public void actionPerformed( ActionEvent e )
 	{
-		if ( e.getID() == NBack.ACTION_TICK )
+		if ( e.getID() == AbstractNBack.ACTION_TICK )
 		{
-			this.nBackLabel.setText( this.nback.getCurrentNumber() + "" );
+			this.nBackLabel.setText( this.nback.getSequence().getCurrentNumber() + "" );
 			this.focusLabel.setText( "" );
 		}
-		else if ( e.getID() == NBack.ACTION_FOCUS )
+		else if ( e.getID() == AbstractNBack.ACTION_FOCUS )
 		{
 			this.nBackLabel.setText( "" );
 			this.focusLabel.setText( "+" );
 		}
-		else if ( e.getID() == NBack.ACTION_COMPLETE )
+		else if ( e.getID() == AbstractNBack.ACTION_COMPLETE )
 		{
-			this.nback.saveResults( this.userId );
+			this.saveResults( this.userId );
 			this.nBackLabel.setText( "Test Complete" );
 		}
 	}
@@ -117,12 +139,14 @@ public class NBackGui extends JFrame implements KeyListener, ActionListener, Mou
 		}
 		else if ( e.getKeyCode() == KeyEvent.VK_ESCAPE )
 		{
+			// May as well attempt to save the results if we quit early. They
+			// wont be complete, but at least they will get something...
 			if ( this.nback.hasStarted() && !this.nback.isCompleted() )
 			{
 				int result = JOptionPane.showConfirmDialog( this, "Save results?" );
 				if ( result == JOptionPane.OK_OPTION )
 				{
-					this.nback.saveResults( this.userId );
+					this.saveResults( this.userId );
 				}
 				this.nback.stop();
 			}
@@ -137,8 +161,10 @@ public class NBackGui extends JFrame implements KeyListener, ActionListener, Mou
 		{
 			this.nback.start();
 		}
-		else if ( !this.nback.isCompleted() && !this.nback.getProperties().isTimed() )
+		else if ( ! this.nback.isCompleted() && ! this.nback.getProperties().isTimed() )
 		{
+			// Non timed tasks use the mouse click as a trigger to tick over to
+			// the next number.
 			this.nback.submitResult( false, true );
 		}
 	}

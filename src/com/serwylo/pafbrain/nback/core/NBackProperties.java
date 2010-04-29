@@ -1,4 +1,4 @@
-package com.serwylo.pafbrain.nback;
+package com.serwylo.pafbrain.nback.core;
 /*
  * Copyright (c) 2010 Peter Serwylo
  * 
@@ -44,7 +44,7 @@ public class NBackProperties
 	public static final float DEFAULT_TARGET_PERCENTAGE = 0.1f;
 	public static final long DEFAULT_RANDOM_SEED = System.currentTimeMillis();
 	public static final String DEFAULT_SAVE_DIRECTORY = System.getProperty( "user.home" );
-	public static final int DEFAULT_FOCUS_TICKS = 2;
+	public static final int DEFAULT_FOCUS_TICKS = 0;
 	
 	private int propN, propTotalNumbers, propTotalTime, propTimeBetweenNumbers, 
 		propNumbersBetweenFocus, propFocusTime, propFocusTicks;
