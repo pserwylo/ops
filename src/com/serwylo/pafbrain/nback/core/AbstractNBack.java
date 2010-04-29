@@ -26,6 +26,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
+/**
+ * Provides an interface for different types of NBack tasks.
+ * Allows dispatching of various ACTION_* events.
+ * Holds a reference to the important properties and numberSequence variables.
+ * Also takes care of storing results via addResult();
+ * @author Peter Serwylo
+ */
 public abstract class AbstractNBack 
 {
 
@@ -54,7 +61,7 @@ public abstract class AbstractNBack
 	
 	protected long timeStartedTest;
 	protected long timeNumberShown;
-	protected boolean hasResultForThisTime;
+	protected boolean hasResultForThisTick;
 	protected boolean hasStarted;
 	protected boolean isCompleted;
 
@@ -71,6 +78,16 @@ public abstract class AbstractNBack
 		this.results = new ArrayList<Result>();
 	}
 
+	/**
+	 * In this function, the most important thing to do is call addResult()
+	 * appropriately to make sure the result is persisted. You may want to
+	 * do certain things depending on whether the result was forced or not.
+	 * For instance, if an InteractiveNBack receives a forced result, it means
+	 * that it needs to tick over to the next number (receiving a forced result
+	 * is the only queue it gets to tick over).
+	 * @param isTarget
+	 * @param wasForced
+	 */
 	public abstract void submitResult( boolean isTarget, boolean wasForced );
 	
 	public void submitResult( boolean isTarget )
@@ -78,6 +95,14 @@ public abstract class AbstractNBack
 		this.submitResult( isTarget, false );
 	}
 	
+	/**
+	 * Adds a new Result object to the results array.
+	 * In addition to the number, whether it was forced, whether it was a
+	 * target, and whether the user chose correctly, it also stores timing
+	 * information.
+	 * @param isTarget
+	 * @param wasForced
+	 */
 	protected void addResult( boolean isTarget, boolean wasForced )
 	{
 		int timeFromStart = (int)( System.currentTimeMillis() - this.timeStartedTest );

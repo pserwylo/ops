@@ -22,6 +22,12 @@ package com.serwylo.pafbrain.nback.core;
  * THE SOFTWARE.
  */
 
+/**
+ * An InteractiveNBack task takes its queues to tick over from when forced
+ * results are submitted. This is, in our GUI's case, done via mouse clicks.
+ * More importantly, it will in lab experiments, be done via an fMRI machine
+ * simulating mouse clicks on the computer.
+ */
 public class InteractiveNBack extends AbstractNBack
 {
 
@@ -30,6 +36,19 @@ public class InteractiveNBack extends AbstractNBack
 		super( properties );
 	}
 
+	/**
+	 * As soon as we start, fire up the first numer by calling the nextNumber()
+	 * method.
+	 */
+	public void start()
+	{
+		if ( ! this.hasStarted )
+		{
+			this.nextNumber();
+			super.start();
+		}
+	}
+	
 	@Override
 	public void submitResult( boolean isTarget, boolean wasForced ) 
 	{
@@ -38,20 +57,20 @@ public class InteractiveNBack extends AbstractNBack
 		// is doing the clicking...
 		if ( wasForced )
 		{
-			if ( ! this.hasResultForThisTime && ! this.numberSequence.isFocusing() )
+			if ( ! this.hasResultForThisTick && ! this.numberSequence.isFocusing() )
 			{
 				// Forced results are NEVER correct, so always pass through
 				// 'false' as the first param.
-				this.addResult( false, true );
-				hasResultForThisTime = true;
+				this.addResult( !this.numberSequence.isTarget(), true );
+				hasResultForThisTick = true;
 			}
 			this.nextNumber();
 		}
 		else
 		{
-			if ( ! this.hasResultForThisTime && ! this.numberSequence.isFocusing() )
+			if ( ! this.hasResultForThisTick && ! this.numberSequence.isFocusing() )
 			{
-				hasResultForThisTime = true;
+				hasResultForThisTick = true;
 				this.addResult( isTarget, false );
 				// TODO: Depending on a particular, but as yet non existent property,
 				// tick over to the next number if we submit a result.
@@ -60,9 +79,13 @@ public class InteractiveNBack extends AbstractNBack
 		}
 	}
 	
+	/**
+	 * Simply sets a flag saying whether or not we have results for this tick,
+	 * generates the next number, and then dispatches the appropriate action.
+	 */
 	private void nextNumber()
 	{
-		hasResultForThisTime = false;
+		hasResultForThisTick = false;
 		this.numberSequence.generateNextNumber();
 		
 		// When we are done, stop the timer, alert the listeners, and then return.

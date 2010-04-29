@@ -27,6 +27,13 @@ import java.awt.event.ActionListener;
 
 import javax.swing.Timer;
 
+/**
+ * A TimedNBack task ticks over numbers at a constant rate.
+ * This is stored in the NBackProperties class as the timeBetweenNumbers property.
+ * If the time ticks over and the user has not submitted a result, then we submit
+ * an incorrect forced result and keep on going.
+ * @author Peter Serwylo
+ */
 public class TimedNBack extends AbstractNBack implements ActionListener
 {
 
@@ -38,22 +45,32 @@ public class TimedNBack extends AbstractNBack implements ActionListener
 		this.timer = new Timer( properties.getTimeBetweenNumbers(), this );
 	}
 	
+	/**
+	 * Reset the timer and make it tick over straight away after adding a result.
+	 * Does not accept results if we are focusing.
+	 */
 	public void submitResult( boolean isTarget, boolean wasForced )
 	{
 		if ( this.hasStarted && !this.numberSequence.isFocusing() )
 		{
-			// Don't ever allow forced results to be correct, so perform a logical
-			// AND with isTarget...
-			this.addResult( isTarget && ! wasForced, wasForced );
-			if ( ! this.hasResultForThisTime && ! wasForced )
+			// Don't ever allow forced results to be correct, so we take the opposite
+			// of what we know will be correct if forced...
+			boolean resultValue = wasForced ? ! this.numberSequence.isTarget() : isTarget;
+			this.addResult( resultValue, wasForced );
+			if ( ! this.hasResultForThisTick && ! wasForced )
 			{
-				this.hasResultForThisTime = true;
+				this.hasResultForThisTick = true;
 				this.timer.setInitialDelay( 0 );
 				this.timer.restart();
 			}
 		}
 	}
 	
+	/**
+	 * Obviously starts the timer, but also notes down the time we started.
+	 * That way, all results will have an idea of how far they are from the
+	 * start of the test.
+	 */
 	public void start()
 	{
 		if ( !this.hasStarted )
@@ -79,17 +96,25 @@ public class TimedNBack extends AbstractNBack implements ActionListener
 		}
 	}
 
+	/**
+	 * If we did not receive a result for the past tick, we will submit a 
+	 * forced result now. We then we ask the numberSequence to generate the 
+	 * next number in the sequence. If it is a focus tick, and the properties
+	 * 'focusTick' and 'focusTime' are not set and set respectively, then we
+	 * will change the delay in the timer to focusTime, to allow an arbitrary
+	 * amount of focusing time.
+	 */
 	@Override
 	public void actionPerformed( ActionEvent e ) 
 	{		
 		// If the user didn't submit an answer, then force an answer from them...
-		if ( ! this.hasResultForThisTime && this.numberSequence.getHistory().size() > 0 )
+		if ( ! this.hasResultForThisTick && this.numberSequence.getHistory().size() > 0 )
 		{
 			this.submitResult( false, true );
 		}
 		else
 		{
-			hasResultForThisTime = false;
+			hasResultForThisTick = false;
 		}
 		
 		boolean wasFocusing = this.numberSequence.isFocusing();

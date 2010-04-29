@@ -97,6 +97,7 @@ public class NBackGui extends JFrame implements KeyListener, ActionListener, Mou
 	 * 	An ACTION_FOCUS will display a + in the centre of the screen
 	 * 	An ACTION_COMPLETE will tell the test to save its results, and then 
 	 * 	display a completed message.
+	 * We don't care whether these came from timed or interactive tests.
 	 */
 	public void actionPerformed( ActionEvent e )
 	{

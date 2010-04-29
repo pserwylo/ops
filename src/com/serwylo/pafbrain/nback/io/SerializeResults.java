@@ -4,6 +4,13 @@ import java.util.ArrayList;
 
 import com.serwylo.pafbrain.nback.core.Result;
 
+/**
+ * Given a comma delimited set of column names, tries to match each entry up
+ * with the property of a Result object. If no matches are found, then an empty
+ * field pursues.
+ * @author Peter Serwylo
+ *
+ */
 public class SerializeResults 
 {
 

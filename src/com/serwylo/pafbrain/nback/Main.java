@@ -29,6 +29,12 @@ import com.serwylo.pafbrain.nback.core.TimedNBack;
 import com.serwylo.pafbrain.nback.gui.NBackGui;
 import javax.swing.JOptionPane;
 
+/**
+ * Prompts the user for their participant ID (will be used to save the file
+ * to once done). Reads the properties, creates an appropriate n back task,
+ * and passes it to the NBackGUI.
+ * @author Peter Serwylo
+ */
 public class Main
 {
 
