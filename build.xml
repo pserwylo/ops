@@ -54,8 +54,10 @@
     </target> 
  
     <target name="clean" depends="init" description="Clean all build files"> 
-        <delete dir="${path.dist.classes}"/> 
-        <delete dir="${path.dist.lib}"/> 
+        <delete dir="${path.dist}"/> 
+        <delete dir="${path.docs}"/> 
+        <delete dir="${path.build}"/> 
+        <delete dir="${path.lib}"/> 
     </target> 
  
     <target name="all" depends="clean,compile" description="Clean and compile the app"/> 
