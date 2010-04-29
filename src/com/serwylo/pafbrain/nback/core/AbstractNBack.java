@@ -54,10 +54,10 @@ public abstract class AbstractNBack
 	 */
 	public static final int ACTION_COMPLETE = 3;
 
-	protected ArrayList<Result> results;
+	private ArrayList<Result> results;
 	protected Sequence numberSequence;
 	protected NBackProperties properties;
-    protected ArrayList<ActionListener> listenerList = new ArrayList<ActionListener>();
+    private ArrayList<ActionListener> listenerList = new ArrayList<ActionListener>();
 	
 	protected long timeStartedTest;
 	protected long timeNumberShown;
