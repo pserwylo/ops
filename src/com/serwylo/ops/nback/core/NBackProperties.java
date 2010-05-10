@@ -1,4 +1,4 @@
-package com.serwylo.pafbrain.nback.core;
+package com.serwylo.ops.nback.core;
 /*
  * Copyright (c) 2010 Peter Serwylo
  * 
@@ -45,26 +45,49 @@ public class NBackProperties
 	public static final long DEFAULT_RANDOM_SEED = System.currentTimeMillis();
 	public static final String DEFAULT_SAVE_DIRECTORY = System.getProperty( "user.home" );
 	public static final int DEFAULT_FOCUS_TICKS = 0;
+	public static final int DEFAULT_TICKS_PER_SEGMENT = 0;
+	public static final int DEFAULT_NUMBERS_PER_SEGMENT = 0;
+	public static final int DEFAULT_TIME_PER_TICK = 0;
+	public static final int DEFAULT_TOTAL_SEGMENTS = 0;
+	public static final boolean DEFAULT_START_WITH_FOCUS = false;
 	
 	private int propN, propTotalNumbers, propTotalTime, propTimeBetweenNumbers, 
-		propNumbersBetweenFocus, propFocusTime, propFocusTicks;
+		propNumbersBetweenFocus, propFocusTime, propFocusTicks, propTicksPerSegment,
+		propNumbersPerSegment, propTimePerTick, propTotalSegments;
 	private float propTargetPercentage;
+	private boolean propStartWithFocus;
 	private long propRandomSeed;
 	private String propSaveDirectory;
 
 	public int getN() { return this.propN; }
-	public int getTotalNumbers() { return this.propTotalNumbers; }
 	public int getTotalTime() { return this.propTotalTime; }
 	public int getTimeBetweenNumbers() { return this.propTimeBetweenNumbers; }
-	public int getNumbersBetweenFocus() { return this.propNumbersBetweenFocus; }
 	public int getFocusTime() { return this.propFocusTime; }
 	public float getTargetPercentage() { return this.propTargetPercentage; }
 	public long getRandomSeed() { return this.propRandomSeed; }
 	public String getSaveDirectory() { return this.propSaveDirectory; }
 	public int getFocusTicks() { return this.propFocusTicks; }
+	public int getTicksPerSegment() { return this.propTicksPerSegment; }
+	public int getNumbersPerSegment() { return this.propNumbersPerSegment; }
+	public int getTimePerTick() { return this.propTimePerTick; }
+	public int getTotalSegments() { return this.propTotalSegments; }
+	public boolean startWithFocus() { return this.propStartWithFocus; }
+
+	/*
+	 * The following properties return different values depending on whether 
+	 * or not we are in interactive timed mode...
+	 */
+	
+	public int getTotalNumbers() { return this.isInteractiveTimed() ? this.propTotalSegments * this.propNumbersPerSegment : this.propTotalNumbers; }
+	public int getNumbersBetweenFocus() { return this.isInteractiveTimed() ? this.propNumbersPerSegment : this.propNumbersBetweenFocus; }
 	
 	
 	public boolean isTimed() { return this.propTimeBetweenNumbers > 0; }
+
+	public boolean isInteractiveTimed()
+	{
+		return this.propTicksPerSegment > 0 && this.propNumbersPerSegment > 0 && this.propTimePerTick > 0;
+	}
 	
 	public boolean requiresFocus() 
 	{ 
@@ -97,6 +120,11 @@ public class NBackProperties
 		String numbersBetweenFocus = properties.getProperty( "numbersBetweenFocus" );
 		String focusTime = properties.getProperty( "focusTime" );
 		String focusTicks = properties.getProperty( "focusTicks" );
+		String ticksPerSegment = properties.getProperty( "interactiveTimed.ticksPerSegment" );
+		String numbersPerSegment = properties.getProperty( "interactiveTimed.numbersPerSegment" );
+		String timePerTick = properties.getProperty( "interactiveTimed.timePerTick" );
+		String totalSegments = properties.getProperty( "interactiveTimed.totalSegments" );
+		String startWithFocus = properties.getProperty( "startWithFocus" );
 
 		this.propN = ( n != null ) ? Integer.parseInt( n ) : DEFAULT_N;
 		this.propTotalNumbers = ( totalNumbers != null ) ? Integer.parseInt( totalNumbers ) : DEFAULT_TOTAL_NUMBERS;
@@ -108,6 +136,11 @@ public class NBackProperties
 		this.propNumbersBetweenFocus = ( numbersBetweenFocus != null ) ? Integer.parseInt( numbersBetweenFocus ) : DEFAULT_NUMBERS_BETWEEN_FOCUS;
 		this.propFocusTime = ( focusTime != null ) ? Integer.parseInt( focusTime ) : DEFAULT_FOCUS_TIME;
 		this.propFocusTicks = ( focusTicks != null ) ? Integer.parseInt( focusTicks ) : DEFAULT_FOCUS_TICKS;
+		this.propTicksPerSegment = ( ticksPerSegment != null ) ? Integer.parseInt( ticksPerSegment ) : DEFAULT_TICKS_PER_SEGMENT;
+		this.propNumbersPerSegment = ( numbersPerSegment != null ) ? Integer.parseInt( numbersPerSegment ) : DEFAULT_NUMBERS_PER_SEGMENT;
+		this.propTimePerTick = ( timePerTick != null ) ? Integer.parseInt( timePerTick ) : DEFAULT_TIME_PER_TICK;
+		this.propTotalSegments = ( totalSegments != null ) ? Integer.parseInt( totalSegments ) : DEFAULT_TOTAL_SEGMENTS;
+		this.propStartWithFocus = ( startWithFocus != null ) ? Boolean.parseBoolean( startWithFocus ) : DEFAULT_START_WITH_FOCUS;
 		
 		File saveDirectoryFile = new File( this.propSaveDirectory );
 		if ( !saveDirectoryFile.exists() || !saveDirectoryFile.isDirectory() )
@@ -129,6 +162,11 @@ public class NBackProperties
 		System.out.println( "  timeSaveDirectory = " + this.propSaveDirectory );
 		System.out.println( "  timeNumbersBetweenFocus = " + this.propNumbersBetweenFocus );
 		System.out.println( "  timeFocusTime = " + this.propFocusTime );
+		System.out.println( "  ticksPerSegment = " + this.propTicksPerSegment );
+		System.out.println( "  numbersPerSegment = " + this.propNumbersPerSegment );
+		System.out.println( "  timePerTick = " + this.propTimePerTick );
+		System.out.println( "  totalSegements = " + this.propTotalSegments );
+		System.out.println( "  startWithFocus = " + this.propStartWithFocus );
 		
 	}
 	

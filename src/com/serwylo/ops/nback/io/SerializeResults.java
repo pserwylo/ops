@@ -1,8 +1,8 @@
-package com.serwylo.pafbrain.nback.io;
+package com.serwylo.ops.nback.io;
 
 import java.util.ArrayList;
 
-import com.serwylo.pafbrain.nback.core.Result;
+import com.serwylo.ops.nback.core.Result;
 
 /**
  * Given a comma delimited set of column names, tries to match each entry up

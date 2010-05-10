@@ -80,20 +80,28 @@
         <delete> 
             <fileset dir="${path.dist.lib}" includes="*.jar"/> 
         </delete> 
-        <jar basedir="${path.dist.classes}" jarfile="${path.dist.lib}/${app.name}.jar"> 
+        <jar basedir="${path.dist.classes}" jarfile="${path.dist.lib}/nback.jar"> 
             <manifest>
-                <attribute name="Main-Class" value="com.serwylo.pafbrain.nback.Main"/>
+                <attribute name="Main-Class" value="com.serwylo.ops.nback.NBackMain"/>
                 <attribute name="Class-Path" value="."/>
             </manifest>
             <include name="**/*.class"/> 
         </jar> 
  
+        <jar basedir="${path.dist.classes}" jarfile="${path.dist.lib}/fred.jar"> 
+            <manifest>
+                <attribute name="Main-Class" value="com.serwylo.ops.clickrobot.ClickRobotMain"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <include name="**/*.class"/> 
+        </jar> 
         <delete> 
             <fileset dir="${path.dist.classes}"> 
                 <include name="LICENSE"/> 
             </fileset> 
         </delete> 
-        <copy file="${path.dist.lib}/${app.name}.jar" tofile="${app.name}.jar" />
+        <copy file="${path.dist.lib}/nback.jar" tofile="nback.jar" />
+        <copy file="${path.dist.lib}/fred.jar" tofile="fred.jar" />
     </target> 
  
 </project>

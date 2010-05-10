@@ -1,5 +1,6 @@
-package com.serwylo.pafbrain.nback.gui;
+package com.serwylo.ops.nback.gui;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
@@ -34,83 +35,100 @@ public class PreferencesDialog extends JDialog
 		GridBagConstraints constraints = new GridBagConstraints();
 		constraints.gridx = 0; constraints.gridy = 0;
 		constraints.anchor = GridBagConstraints.EAST;
-		panel.add( new JLabel( "N Value" ), constraints );
+		panel.add( new JLabel( "N Value:  " ), constraints );
 		
 		constraints = new GridBagConstraints();
 		constraints.gridx = 1; constraints.gridy = 0;
-		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.anchor = GridBagConstraints.LINE_START;
 		panel.add( inputN, constraints );
+		inputN.setPreferredSize( new Dimension( 50, 20 ) );
 
 		
 		// == Target Percentage ==
 		constraints = new GridBagConstraints();
 		constraints.gridx = 0; constraints.gridy = 1;
 		constraints.anchor = GridBagConstraints.EAST;
-		panel.add( new JLabel( "Target Percentage" ), constraints );
+		panel.add( new JLabel( "Target Percentage:  " ), constraints );
 		
 		constraints = new GridBagConstraints();
 		constraints.gridx = 1; constraints.gridy = 1;
-		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.anchor = GridBagConstraints.LINE_START;
 		panel.add( inputTargetPercentage, constraints );
-
+		inputTargetPercentage.setPreferredSize( new Dimension( 50, 20 ) );
+		
 		
 		// == Total Numbers ==
 		constraints = new GridBagConstraints();
 		constraints.gridx = 0; constraints.gridy = 2;
 		constraints.anchor = GridBagConstraints.EAST;
-		panel.add( new JLabel( "Total Numbers" ), constraints );
+		panel.add( new JLabel( "Total Numbers:  " ), constraints );
 		
 		constraints = new GridBagConstraints();
 		constraints.gridx = 1; constraints.gridy = 2;
-		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.anchor = GridBagConstraints.LINE_START;
 		panel.add( inputTotalNumbers, constraints );
-
+		inputTotalNumbers.setPreferredSize( new Dimension( 50, 20 ) );
+		
 		// == Time Between Numbers ==
 		constraints = new GridBagConstraints();
 		constraints.gridx = 0; constraints.gridy = 3;
 		constraints.anchor = GridBagConstraints.EAST;
-		panel.add( new JLabel( "Time Between Numbers" ), constraints );
+		panel.add( new JLabel( "Time Between Numbers:  " ), constraints );
 		
 		constraints = new GridBagConstraints();
 		constraints.gridx = 1; constraints.gridy = 3;
-		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.anchor = GridBagConstraints.LINE_START;
 		panel.add( inputTimeBetweenNumbers, constraints );
-
-		// == Always Random ==
+		inputTimeBetweenNumbers.setPreferredSize( new Dimension( 50, 20 ) );
+		
+		// == Total Time ==
 		constraints = new GridBagConstraints();
 		constraints.gridx = 0; constraints.gridy = 4;
 		constraints.anchor = GridBagConstraints.EAST;
-		panel.add( new JLabel( "Always Random" ), constraints );
+		panel.add( new JLabel( "Total Time:  " ), constraints );
 		
 		constraints = new GridBagConstraints();
 		constraints.gridx = 1; constraints.gridy = 4;
-		constraints.fill = GridBagConstraints.HORIZONTAL;
-		panel.add( inputAlwaysRandom, constraints );
-
-		// == Random Seed ==
+		constraints.anchor = GridBagConstraints.LINE_START;
+		panel.add( inputTotalTime, constraints );
+		inputTotalTime.setPreferredSize( new Dimension( 50, 20 ) );
+		
+		// == Always Random ==
 		constraints = new GridBagConstraints();
 		constraints.gridx = 0; constraints.gridy = 5;
 		constraints.anchor = GridBagConstraints.EAST;
-		panel.add( new JLabel( "Random Seed" ), constraints );
+		panel.add( new JLabel( "Always Random:  " ), constraints );
 		
 		constraints = new GridBagConstraints();
 		constraints.gridx = 1; constraints.gridy = 5;
-		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.anchor = GridBagConstraints.LINE_START;
+		panel.add( inputAlwaysRandom, constraints );
+		
+		// == Random Seed ==
+		constraints = new GridBagConstraints();
+		constraints.gridx = 0; constraints.gridy = 6;
+		constraints.anchor = GridBagConstraints.EAST;
+		panel.add( new JLabel( "Random Seed:  " ), constraints );
+		
+		constraints = new GridBagConstraints();
+		constraints.gridx = 1; constraints.gridy = 6;
+		constraints.anchor = GridBagConstraints.LINE_START;
 		panel.add( inputRandomSeed, constraints );
 
 		// == Save Directory ==
 		constraints = new GridBagConstraints();
-		constraints.gridx = 0; constraints.gridy = 6; 
+		constraints.gridx = 0; constraints.gridy = 7; 
 		constraints.anchor = GridBagConstraints.EAST;
-		panel.add( new JLabel( "Save Directory" ), constraints );
+		panel.add( new JLabel( "Save Directory:  " ), constraints );
 
 		constraints = new GridBagConstraints();
-		constraints.gridx = 1; constraints.gridy = 6;
+		constraints.gridx = 1; constraints.gridy = 7;
 		constraints.fill = GridBagConstraints.HORIZONTAL;
+		inputSaveDirectory.setPreferredSize( new Dimension( 200, 20 ) );
 		panel.add( inputSaveDirectory, constraints );
 
 		constraints = new GridBagConstraints();
-		constraints.gridx = 2; constraints.gridy = 6;
+		constraints.gridx = 2; constraints.gridy = 7;
 		panel.add( btnChooseSaveDir, constraints );
 		
 		/*this.addInput( panel, inputSaveDirectory, "Directory To Save To", 7 );
@@ -125,19 +143,6 @@ public class PreferencesDialog extends JDialog
 			
 	}
 
-	private void addInput( JPanel panel, JComponent inputComponent, String label, int row )
-	{
-		GridBagConstraints constraints = new GridBagConstraints();
-		constraints.gridx = 0; constraints.gridy = row;
-		constraints.anchor = GridBagConstraints.EAST;
-		panel.add( new JLabel( label ), constraints );
-		
-		constraints = new GridBagConstraints();
-		constraints.gridx = 1; constraints.gridy = row;
-		constraints.fill = GridBagConstraints.HORIZONTAL;
-		panel.add( inputComponent, constraints );
-	}
-	
 	public static void main( String[] args )
 	{
 		new PreferencesDialog();

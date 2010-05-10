@@ -1,4 +1,4 @@
-package com.serwylo.pafbrain.nback.core;
+package com.serwylo.ops.nback.core;
 
 /*
  * Copyright (c) 2010 Peter Serwylo
@@ -28,7 +28,7 @@ package com.serwylo.pafbrain.nback.core;
  * More importantly, it will in lab experiments, be done via an fMRI machine
  * simulating mouse clicks on the computer.
  */
-public class InteractiveNBack extends AbstractNBack
+public class InteractiveNBack extends AbstractNBack implements IInteractiveNBack
 {
 
 	public InteractiveNBack( NBackProperties properties ) 
@@ -104,6 +104,12 @@ public class InteractiveNBack extends AbstractNBack
 			// Set back to the original delay, because we just finished focusing...
 			this.fireAction( ACTION_TICK );
 		}
+	}
+
+	@Override
+	public void receiveClick() 
+	{
+		this.submitResult( false, true );
 	}
 
 }

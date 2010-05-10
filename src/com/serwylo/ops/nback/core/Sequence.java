@@ -1,4 +1,4 @@
-package com.serwylo.pafbrain.nback.core;
+package com.serwylo.ops.nback.core;
 
 /*
  * Copyright (c) 2010 Peter Serwylo
@@ -57,6 +57,12 @@ public class Sequence
 	{
 		this.properties = properties;
 		this.random = new Random( this.properties.getRandomSeed() );
+		
+		// This is a simple way to start off focussing if required...
+		if ( this.properties.requiresFocus() && this.properties.startWithFocus() )
+		{
+			this.numbersSinceLastFocus = this.properties.getNumbersBetweenFocus();
+		}
 	}
 	
 	public int generateNextNumber()

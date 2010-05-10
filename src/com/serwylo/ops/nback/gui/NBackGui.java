@@ -1,4 +1,4 @@
-package com.serwylo.pafbrain.nback.gui;
+package com.serwylo.ops.nback.gui;
 /*
  * Copyright (c) 2010 Peter Serwylo
  * 
@@ -30,8 +30,10 @@ import java.io.IOException;
 
 import javax.swing.*;
 
-import com.serwylo.pafbrain.nback.core.AbstractNBack;
-import com.serwylo.pafbrain.nback.io.SerializeResults;
+import com.serwylo.ops.nback.core.AbstractNBack;
+import com.serwylo.ops.nback.core.IInteractiveNBack;
+import com.serwylo.ops.nback.core.InteractiveTimedNBack;
+import com.serwylo.ops.nback.io.SerializeResults;
 
 
 @SuppressWarnings("serial")
@@ -162,11 +164,12 @@ public class NBackGui extends JFrame implements KeyListener, ActionListener, Mou
 		{
 			this.nback.start();
 		}
-		else if ( ! this.nback.isCompleted() && ! this.nback.getProperties().isTimed() )
+		
+		if ( this.nback instanceof IInteractiveNBack && ! this.nback.isCompleted() )
 		{
 			// Non timed tasks use the mouse click as a trigger to tick over to
 			// the next number.
-			this.nback.submitResult( false, true );
+			( (IInteractiveNBack)this.nback ).receiveClick();
 		}
 	}
 

@@ -1,4 +1,4 @@
-package com.serwylo.pafbrain.nback;
+package com.serwylo.ops.nback;
 
 /*
  * Copyright (c) 2010 Peter Serwylo
@@ -22,11 +22,13 @@ package com.serwylo.pafbrain.nback;
  * THE SOFTWARE.
  */
 
-import com.serwylo.pafbrain.nback.core.AbstractNBack;
-import com.serwylo.pafbrain.nback.core.InteractiveNBack;
-import com.serwylo.pafbrain.nback.core.NBackProperties;
-import com.serwylo.pafbrain.nback.core.TimedNBack;
-import com.serwylo.pafbrain.nback.gui.NBackGui;
+import com.serwylo.ops.nback.core.AbstractNBack;
+import com.serwylo.ops.nback.core.InteractiveNBack;
+import com.serwylo.ops.nback.core.InteractiveTimedNBack;
+import com.serwylo.ops.nback.core.NBackProperties;
+import com.serwylo.ops.nback.core.TimedNBack;
+import com.serwylo.ops.nback.gui.NBackGui;
+
 import javax.swing.JOptionPane;
 
 /**
@@ -35,7 +37,7 @@ import javax.swing.JOptionPane;
  * and passes it to the NBackGUI.
  * @author Peter Serwylo
  */
-public class Main
+public class NBackMain
 {
 
 	public static void main( String[] args )
@@ -57,7 +59,22 @@ public class Main
 			JOptionPane.showMessageDialog( null, "Error reading properties file:\n" + e.getMessage() + "\nWill attempt to continue anyway." );
 		}
 		
-		AbstractNBack nback = properties.isTimed() ? new TimedNBack( properties ) : new InteractiveNBack( properties );
+		AbstractNBack nback;
+		if ( properties.isInteractiveTimed() )
+		{
+			nback = new InteractiveTimedNBack( properties );
+			System.out.println( "Creating Interactive/Timed Task" );
+		}
+		else if ( properties.isTimed() )
+		{
+			nback = new TimedNBack( properties );
+			System.out.println( "Creating Timed Task" );
+		}
+		else
+		{
+			nback = new InteractiveNBack( properties );
+			System.out.println( "Interactive Task" );
+		}
 		new NBackGui( nback, userId );
 	}
 	
