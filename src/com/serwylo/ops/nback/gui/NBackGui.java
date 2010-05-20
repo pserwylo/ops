@@ -53,23 +53,29 @@ public class NBackGui extends JFrame implements KeyListener, ActionListener, Mou
 		JPanel panel = new JPanel();
 		panel.setLayout( new FlowLayout( FlowLayout.CENTER ) );
 		
+		// Starts off at 50 font size, because it contains the 'click to start'.
+		// we will resize it as per the properties when we start the task...
 		this.nBackLabel = new JLabel( "NBack - Click to begin" );
-		this.nBackLabel.setFont( new Font( Font.SERIF, Font.BOLD, 50 ) );
+		this.nBackLabel.setFont( new Font( Font.SANS_SERIF, Font.BOLD, 50 ) );
 		this.nBackLabel.setHorizontalAlignment( JLabel.CENTER );
+		this.nBackLabel.setForeground( this.nback.getProperties().getTextColour() );
 		panel.add( this.nBackLabel );
 		
 		this.focusLabel = new JLabel( "" );
-		this.focusLabel.setFont( new Font( Font.SANS_SERIF, Font.BOLD, 100 ) );
+		this.focusLabel.setFont( new Font( Font.SANS_SERIF, Font.BOLD, this.nback.getProperties().getFocusFontSize() ) );
 		this.focusLabel.setHorizontalAlignment( JLabel.CENTER );
+		this.focusLabel.setForeground( this.nback.getProperties().getTextColour() );
 		panel.add( this.focusLabel );
 		
 		this.addKeyListener( this );
 		this.addMouseListener( this );
 		
 		this.setLayout( new GridBagLayout() );
+		panel.setBackground( this.nback.getProperties().getBackgroundColour() );
 		this.add( panel, new GridBagConstraints() );
 
 		this.setSize( 800, 300 );
+		this.getContentPane().setBackground( this.nback.getProperties().getBackgroundColour() );
 		this.setVisible( true );
 		this.setExtendedState( JFrame.MAXIMIZED_BOTH );
 		this.setDefaultCloseOperation( EXIT_ON_CLOSE );
@@ -162,6 +168,7 @@ public class NBackGui extends JFrame implements KeyListener, ActionListener, Mou
 	{
 		if ( !this.nback.hasStarted() )
 		{
+			this.nBackLabel.setFont( new Font( Font.SANS_SERIF, Font.BOLD, this.nback.getProperties().getNumberFontSize() ) );
 			this.nback.start();
 		}
 		

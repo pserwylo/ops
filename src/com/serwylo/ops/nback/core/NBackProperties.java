@@ -21,6 +21,7 @@ package com.serwylo.ops.nback.core;
  * THE SOFTWARE.
  */
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -50,14 +51,20 @@ public class NBackProperties
 	public static final int DEFAULT_TIME_PER_TICK = 0;
 	public static final int DEFAULT_TOTAL_SEGMENTS = 0;
 	public static final boolean DEFAULT_START_WITH_FOCUS = false;
+	public static final int DEFAULT_NUMBER_FONT_SIZE = 16;
+	public static final int DEFAULT_FOCUS_FONT_SIZE = 16;
+	public static final Color DEFAULT_BACKGROUND_COLOUR = new Color( 0x000000 );
+	public static final Color DEFAULT_TEXT_COLOUR = new Color( 0xFFFFFF );
 	
 	private int propN, propTotalNumbers, propTotalTime, propTimeBetweenNumbers, 
 		propNumbersBetweenFocus, propFocusTime, propFocusTicks, propTicksPerSegment,
-		propNumbersPerSegment, propTimePerTick, propTotalSegments;
+		propNumbersPerSegment, propTimePerTick, propTotalSegments, 
+		propNumberFontSize, propFocusFontSize;
 	private float propTargetPercentage;
 	private boolean propStartWithFocus;
 	private long propRandomSeed;
 	private String propSaveDirectory;
+	private Color propBackgroundColour, propTextColour;
 
 	public int getN() { return this.propN; }
 	public int getTotalTime() { return this.propTotalTime; }
@@ -72,6 +79,10 @@ public class NBackProperties
 	public int getTimePerTick() { return this.propTimePerTick; }
 	public int getTotalSegments() { return this.propTotalSegments; }
 	public boolean startWithFocus() { return this.propStartWithFocus; }
+	public int getNumberFontSize() { return this.propNumberFontSize; }
+	public int getFocusFontSize() { return this.propFocusFontSize; }
+	public Color getBackgroundColour() { return this.propBackgroundColour; }
+	public Color getTextColour() { return this.propTextColour; }
 
 	/*
 	 * The following properties return different values depending on whether 
@@ -125,6 +136,10 @@ public class NBackProperties
 		String timePerTick = properties.getProperty( "interactiveTimed.timePerTick" );
 		String totalSegments = properties.getProperty( "interactiveTimed.totalSegments" );
 		String startWithFocus = properties.getProperty( "startWithFocus" );
+		String numberFontSize = properties.getProperty( "gui.numberFontSize" );
+		String focusFontSize = properties.getProperty( "gui.focusFontSize" );
+		String backgroundColour = properties.getProperty( "gui.backgroundColour" );
+		String textColour = properties.getProperty( "gui.textColour" );
 
 		this.propN = ( n != null ) ? Integer.parseInt( n ) : DEFAULT_N;
 		this.propTotalNumbers = ( totalNumbers != null ) ? Integer.parseInt( totalNumbers ) : DEFAULT_TOTAL_NUMBERS;
@@ -141,6 +156,10 @@ public class NBackProperties
 		this.propTimePerTick = ( timePerTick != null ) ? Integer.parseInt( timePerTick ) : DEFAULT_TIME_PER_TICK;
 		this.propTotalSegments = ( totalSegments != null ) ? Integer.parseInt( totalSegments ) : DEFAULT_TOTAL_SEGMENTS;
 		this.propStartWithFocus = ( startWithFocus != null ) ? Boolean.parseBoolean( startWithFocus ) : DEFAULT_START_WITH_FOCUS;
+		this.propNumberFontSize = ( numberFontSize != null ) ? Integer.parseInt( numberFontSize ) : DEFAULT_NUMBER_FONT_SIZE;
+		this.propFocusFontSize = ( focusFontSize != null ) ? Integer.parseInt( focusFontSize ) : DEFAULT_FOCUS_FONT_SIZE;
+		this.propBackgroundColour = ( backgroundColour != null ) ? Color.decode( backgroundColour ) : DEFAULT_BACKGROUND_COLOUR;
+		this.propTextColour = ( textColour != null ) ? Color.decode( textColour ) : DEFAULT_TEXT_COLOUR;
 		
 		File saveDirectoryFile = new File( this.propSaveDirectory );
 		if ( !saveDirectoryFile.exists() || !saveDirectoryFile.isDirectory() )
