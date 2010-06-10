@@ -137,12 +137,12 @@ public class NBackGui extends JFrame implements KeyListener, ActionListener, Mou
 	public void keyPressed( KeyEvent e ) 
 	{
 		// If is target
-		if ( e.getKeyCode() == KeyEvent.VK_ENTER )
+		if ( e.getKeyCode() == KeyEvent.VK_Y )
 		{
 			this.nback.submitResult( true );
 		}
 		// If isn't target
-		else if ( e.getKeyCode() == KeyEvent.VK_SPACE )
+		else if ( e.getKeyCode() == KeyEvent.VK_O )
 		{
 			this.nback.submitResult( false );
 		}
@@ -170,6 +170,7 @@ public class NBackGui extends JFrame implements KeyListener, ActionListener, Mou
 		{
 			this.nBackLabel.setFont( new Font( Font.SANS_SERIF, Font.BOLD, this.nback.getProperties().getNumberFontSize() ) );
 			this.nback.start();
+			this.nBackLabel.setText( "" );
 		}
 		
 		if ( this.nback instanceof IInteractiveNBack && ! this.nback.isCompleted() )
