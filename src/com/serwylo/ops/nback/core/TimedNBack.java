@@ -51,15 +51,19 @@ public class TimedNBack extends AbstractNBack implements ActionListener
 	 */
 	public void submitResult( boolean isTarget, boolean wasForced )
 	{
-		if ( this.hasStarted && !this.numberSequence.isFocusing() )
+		if ( this.hasStarted && !this.numberSequence.isFocusing() && ! this.hasResultForThisTick )
 		{
 			// Don't ever allow forced results to be correct, so we take the opposite
 			// of what we know will be correct if forced...
 			boolean resultValue = wasForced ? ! this.numberSequence.isTarget() : isTarget;
+			
 			this.addResult( resultValue, wasForced );
-			if ( ! this.hasResultForThisTick && ! wasForced )
+			this.hasResultForThisTick = true;
+			
+			// Only skip forward if that property is set, otherwise wait for the  natural progression of the ticker
+			// to tick over itself...
+			if ( ! wasForced && this.properties.skipOnSubmit() )
 			{
-				this.hasResultForThisTick = true;
 				this.timer.setInitialDelay( 0 );
 				this.timer.restart();
 			}

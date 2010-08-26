@@ -55,13 +55,14 @@ public class NBackProperties
 	public static final int DEFAULT_FOCUS_FONT_SIZE = 16;
 	public static final Color DEFAULT_BACKGROUND_COLOUR = new Color( 0x000000 );
 	public static final Color DEFAULT_TEXT_COLOUR = new Color( 0xFFFFFF );
+	public static final boolean DEFAULT_SKIP_ON_SUBMIT = true;
 	
 	private int propN, propTotalNumbers, propTotalTime, propTimeBetweenNumbers, 
 		propNumbersBetweenFocus, propFocusTime, propFocusTicks, propTicksPerSegment,
 		propNumbersPerSegment, propTimePerTick, propTotalSegments, 
 		propNumberFontSize, propFocusFontSize;
 	private float propTargetPercentage;
-	private boolean propStartWithFocus;
+	private boolean propStartWithFocus, propSkipOnSubmit;
 	private long propRandomSeed;
 	private String propSaveDirectory;
 	private Color propBackgroundColour, propTextColour;
@@ -83,6 +84,7 @@ public class NBackProperties
 	public int getFocusFontSize() { return this.propFocusFontSize; }
 	public Color getBackgroundColour() { return this.propBackgroundColour; }
 	public Color getTextColour() { return this.propTextColour; }
+	public boolean skipOnSubmit() { return this.propSkipOnSubmit; }
 
 	/*
 	 * The following properties return different values depending on whether 
@@ -140,6 +142,7 @@ public class NBackProperties
 		String focusFontSize = properties.getProperty( "gui.focusFontSize" );
 		String backgroundColour = properties.getProperty( "gui.backgroundColour" );
 		String textColour = properties.getProperty( "gui.textColour" );
+		String skipOnSubmit = properties.getProperty( "timed.skipOnSubmit" );
 
 		this.propN = ( n != null ) ? Integer.parseInt( n ) : DEFAULT_N;
 		this.propTotalNumbers = ( totalNumbers != null ) ? Integer.parseInt( totalNumbers ) : DEFAULT_TOTAL_NUMBERS;
@@ -160,6 +163,7 @@ public class NBackProperties
 		this.propFocusFontSize = ( focusFontSize != null ) ? Integer.parseInt( focusFontSize ) : DEFAULT_FOCUS_FONT_SIZE;
 		this.propBackgroundColour = ( backgroundColour != null ) ? Color.decode( backgroundColour ) : DEFAULT_BACKGROUND_COLOUR;
 		this.propTextColour = ( textColour != null ) ? Color.decode( textColour ) : DEFAULT_TEXT_COLOUR;
+		this.propSkipOnSubmit = ( skipOnSubmit != null ) ? Boolean.parseBoolean( skipOnSubmit ) : DEFAULT_SKIP_ON_SUBMIT;
 		
 		File saveDirectoryFile = new File( this.propSaveDirectory );
 		if ( !saveDirectoryFile.exists() || !saveDirectoryFile.isDirectory() )
@@ -186,6 +190,7 @@ public class NBackProperties
 		System.out.println( "  timePerTick = " + this.propTimePerTick );
 		System.out.println( "  totalSegements = " + this.propTotalSegments );
 		System.out.println( "  startWithFocus = " + this.propStartWithFocus );
+		System.out.println( "  skipOnSubmit = " + this.propSkipOnSubmit );
 		
 	}
 	
