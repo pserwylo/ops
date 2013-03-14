@@ -2,3 +2,9 @@ dist
 doc
 build
 lib
+
+# IntelliJ files/directories
+*.iml
+.idea
+out
+

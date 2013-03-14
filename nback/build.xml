@@ -1,0 +1,107 @@
+<project name="NBack" default="all" basedir=""> 
+ 
+    <description> 
+    </description> 
+ 
+    <target name="init" description="Setting up properties"> 
+		<property name="app.name" value="NBack"/> 
+		<property name="app.title" value="[P]etes [A]pplications [F]or [Brain] stuff"/> 
+        <property name="path.build" value="build"/> 
+        <property name="path.build.lib" value="build/lib"/> 
+        <property name="path.dist" value="dist"/> 
+        <property name="path.dist.classes" value="dist/classes"/> 
+        <property name="path.dist.lib" value="dist/lib"/> 
+        <property name="path.docs" value="docs"/> 
+        <property name="path.lib" value="lib"/> 
+        <property name="path.src" value="src"/> 
+        <property name="path.src.test" value="tests"/> 
+        <property name="compile.debug" value="true"/> 
+        <property name="compile.deprecation" value="true"/> 
+        <property name="compile.jdk-version.source" value="1.5"/> 
+        <property name="compile.jdk-version.target" value="1.5"/> 
+        <property name="compile.optimize" value="true"/> 
+ 
+        <path id="compile.classpath"> 
+            <fileset dir="${path.build.lib}"> 
+                <include name="*.jar"/> 
+            </fileset> 
+            <fileset dir="${path.lib}"> 
+                <include name="*.jar"/> 
+            </fileset> 
+        </path> 
+ 
+    </target> 
+ 
+    <target name="createDirs" description="Creates all required dirs" depends="init"> 
+        <mkdir dir="${path.build}"/> 
+        <mkdir dir="${path.build.lib}"/> 
+        <mkdir dir="${path.dist}"/> 
+        <mkdir dir="${path.dist.classes}"/> 
+        <mkdir dir="${path.dist.lib}"/> 
+        <mkdir dir="${path.docs}"/> 
+        <mkdir dir="${path.lib}"/> 
+        <mkdir dir="${path.src}"/> 
+    </target> 
+ 
+    <target name="prepare" depends="init, createDirs" description="Prepare build directory"> 
+ 
+    </target> 
+ 
+    <target name="compile" depends="prepare" description="Compile source"> 
+        <javac debug="${compile.debug}" deprecation="${compile.deprecation}" destdir="${path.dist.classes}" target="${compile.jdk-version.target}" source="${compile.jdk-version.source}" optimize="${compile.optimize}" srcdir="${path.src}"> 
+            <classpath refid="compile.classpath"/> 
+        </javac> 
+    </target> 
+ 
+    <target name="clean" depends="init" description="Clean all build files"> 
+        <delete dir="${path.dist}"/> 
+        <delete dir="${path.docs}"/> 
+        <delete dir="${path.build}"/> 
+        <delete dir="${path.lib}"/> 
+    </target> 
+ 
+    <target name="all" depends="clean,compile" description="Clean and compile the app"/> 
+ 
+    <target name="javadoc" depends="compile" description="Create app Javadoc"> 
+        <delete dir="${path.docs}"/> 
+        <mkdir dir="${path.docs}"/> 
+        <javadoc author="true" bottom="${app.title}" destdir="${path.docs}" source="${compile.jdk-version.source}" doctitle="${app.title}" packagenames="*" access="protected" sourcepath="${path.src}" version="true" windowtitle="${app.title}"> 
+            <classpath refid="compile.classpath"/> 
+        </javadoc> 
+    </target> 
+ 
+    <target name="build-test" depends="compile" description="Compiles test src"> 
+        <javac debug="${compile.debug}" deprecation="${compile.deprecation}" destdir="${path.test.classes}" target="${compile.jdk-version.target" source="${compile.jdk-version.source}" optimize="${compile.optimize}" srcdir="${path.src.test}"> 
+            <classpath refid="compile.classpath"/> 
+        </javac> 
+    </target> 
+ 
+    <target name="jar" depends="compile" description="Create binary distribution"> 
+        <delete> 
+            <fileset dir="${path.dist.lib}" includes="*.jar"/> 
+        </delete> 
+        <jar basedir="${path.dist.classes}" jarfile="${path.dist.lib}/nback.jar"> 
+            <manifest>
+                <attribute name="Main-Class" value="com.serwylo.ops.nback.NBackMain"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <include name="**/*.class"/> 
+        </jar> 
+ 
+        <jar basedir="${path.dist.classes}" jarfile="${path.dist.lib}/fred.jar"> 
+            <manifest>
+                <attribute name="Main-Class" value="com.serwylo.ops.clickrobot.ClickRobotMain"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <include name="**/*.class"/> 
+        </jar> 
+        <delete> 
+            <fileset dir="${path.dist.classes}"> 
+                <include name="LICENSE"/> 
+            </fileset> 
+        </delete> 
+        <copy file="${path.dist.lib}/nback.jar" tofile="nback.jar" />
+        <copy file="${path.dist.lib}/fred.jar" tofile="fred.jar" />
+    </target> 
+ 
+</project>
