@@ -1,3 +1,4 @@
 package com.serwylo.ops.electrodes
 
-new ElectrodesConverter().convert()
+new ElectrodesDataMungingGui().show()
+// new ElectrodesConverter().convert()

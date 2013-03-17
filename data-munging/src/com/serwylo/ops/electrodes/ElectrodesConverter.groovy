@@ -15,9 +15,11 @@ class ElectrodesConverter extends Converter {
 	@Override
 	void convert() {
 
-		XSpreadsheetDocument doc = connector.open( "/home/pete/Documents/people/felicia/data.txt", new CsvOptions( startLine: 14, fieldDelimiters: CsvOptions.TAB, hideFrame: false ) )
+		// XSpreadsheetDocument doc = connector.open( "/home/pete/Documents/people/felicia/data.txt", new CsvOptions( startLine: 14, fieldDelimiters: CsvOptions.TAB, hideFrame: false ) )
+		XSpreadsheetDocument doc = connector.open( "/home/pete/Documents/people/felicia/data.txt", new CsvOptions( startLine: 190000, fieldDelimiters: CsvOptions.TAB, hideFrame: false ) )
 
-		def numRange = 0..191060
+		// def numRange = 0..191059
+		def numRange = 0..59
 		def columns = doc[ 0 ].columns
 		for ( int i = 0; i < columns.size(); i ++ ) {
 
@@ -44,10 +46,10 @@ class ElectrodesConverter extends Converter {
 
 				List<List<String>> values = numRange.collect { row ->
 					List<String> cells = columnsToAverage.collect { col -> col + row }
-					[ "=AVERAGE( ${cells.join( "," )})" ]
+					[ "=SUM( ${cells.join( "," )})" ]
 				}
 				println "Sending ${values.size()} values to the spreadsheet..."
-				column.formulas = values
+				column << values
 				println "Sending complete"
 			}
 
