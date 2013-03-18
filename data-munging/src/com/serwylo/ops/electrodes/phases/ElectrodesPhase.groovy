@@ -5,6 +5,6 @@ import com.serwylo.ops.electrodes.Model
 
 abstract class ElectrodesPhase extends Phase {
 
-	protected Model model
+	protected Model data
 	
 }

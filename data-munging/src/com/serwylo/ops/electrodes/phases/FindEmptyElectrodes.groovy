@@ -24,22 +24,28 @@ class FindEmptyElectrodes extends ElectrodesPhase {
 	@Override
 	void execute() {
 		List<Object> firstRow = getFirstRow()
-		model.headers.electrodeLabels.each { entry ->
+		data.headers.electrodeLabels.each { entry ->
 
 			Integer index  = entry.value
 			String colName = entry.key
 			assert( firstRow.size() > index )
 
 			if ( isEmpty( firstRow[ index ] ) ) {
-				model.deadColumns.add( colName )
+				markAsDead( colName )
 			}
 		}
+
+	}
+
+	private void markAsDead( String colName ) {
+		data.deadColumns.add( colName )
+		// TODO: Highlight columns red (or at least the header label)
 	}
 
 	private List<Object> getFirstRow() {
-		String colName = ColumnUtils.indexToName( model.headers.electrodeLabels.size() - 1 )
-		int rowIndex   = model.headers.startRow + 1
-		XCellRange range = model.document[ 0 ][ "A$rowIndex:$colName$rowIndex" ]
+		String colName = ColumnUtils.indexToName( data.headers.electrodeLabels.size() - 1 )
+		int rowIndex   = data.headers.startRow + 1
+		XCellRange range = data.document[ 0 ][ "A$rowIndex:$colName$rowIndex" ]
 
 		range.cellRangeData.dataArray[ 0 ]
 	}

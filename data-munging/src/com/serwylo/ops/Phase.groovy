@@ -16,12 +16,12 @@ abstract class Phase {
 		""
 	}
 
-	String toString() {
-		name
+	JComponent getGui() {
+		null
 	}
 
-	SwingBuilder getGui() {
-
+	String toString() {
+		name
 	}
 
 }

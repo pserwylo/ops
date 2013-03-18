@@ -2,12 +2,8 @@ package com.serwylo.ops.electrodes.phases
 
 import com.serwylo.ops.PhaseFailedException
 import com.serwylo.ops.electrodes.phases.identifyingElectrodes.Headers
-import com.serwylo.uno.spreadsheet.CsvOptions
 import com.sun.star.sheet.XCellRangeFormula
 import com.sun.star.table.XCellRange
-import groovy.swing.SwingBuilder
-
-import javax.swing.*
 
 class IdentifyElectrodes extends ElectrodesPhase {
 
@@ -28,11 +24,11 @@ class IdentifyElectrodes extends ElectrodesPhase {
 
 	@Override
 	void execute() throws PhaseFailedException {
-		XCellRange header = model.document[ 0 ][ "A1:ZZ20" ]
+		XCellRange header = data.document[ 0 ][ "A1:ZZ20" ]
 		XCellRangeFormula formulas = header.cellRangeFormula
 		Headers values = new Headers()
 		values.parse( formulas.formulaArray )
-		model.headers = values
+		data.headers = values
 	}
 
 }

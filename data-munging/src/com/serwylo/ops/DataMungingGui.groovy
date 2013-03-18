@@ -7,7 +7,11 @@ import com.serwylo.ops.electrodes.phases.*
 import groovy.swing.SwingBuilder
 
 import javax.swing.BoxLayout
+import javax.swing.JButton
+import javax.swing.JComponent
+import javax.swing.JFrame
 import javax.swing.JLabel
+import javax.swing.JPanel
 import java.awt.BorderLayout
 import java.awt.Color
 
@@ -20,14 +24,17 @@ abstract class DataMungingGui {
 	protected Map<Phase, JLabel> phaseComponents = [:]
 	private SwingBuilder uiBuilder               = new SwingBuilder()
 
-	private Phase currentPhase
+	Phase   currentPhase
+	JPanel  currentPhasePanel
+	JButton currentPhaseDoneButton
+	JFrame  windowFrame
 
 	public show() {
 
 		createPhaseComponents()
 
 		ui.edt {
-			frame( title : title, size : [ 300, 300 ], show : true ) {
+			windowFrame = frame( title : title, size : [ 800, 640 ], show : true, defaultCloseOperation: JFrame.EXIT_ON_CLOSE ) {
 				borderLayout()
 
 				menuBar( constraints : BorderLayout.NORTH ) {
@@ -41,13 +48,11 @@ abstract class DataMungingGui {
 
 				panel( constraints : BorderLayout.WEST ) {
 					boxLayout( axis : BoxLayout.Y_AXIS )
-					label( text : "WEST" )
 				}
 
-				panel( constraints : BorderLayout.CENTER ) {
-					flowLayout()
-					label( text : "CENTER" )
-				}
+				currentPhasePanel = panel( constraints : BorderLayout.CENTER )
+
+				currentPhaseDoneButton = button( "Done", actionPerformed: phaseDone, constraints: BorderLayout.SOUTH )
 
 				panel( constraints : BorderLayout.EAST ) {
 					boxLayout( axis : BoxLayout.Y_AXIS )
@@ -97,10 +102,14 @@ abstract class DataMungingGui {
 			highlightPhase( currentPhase )
 			println "Starting phase: $currentPhase"
 			try {
-				currentPhase.execute()
-				nextPhase()
+				if ( !currentPhase.requiresUserInteraction() ) {
+					currentPhase.execute()
+					nextPhase()
+				} else {
+					// Wait for the user to click the "Done" button.
+				}
 			} catch ( PhaseFailedException e ) {
-
+				System.err.println "Failed phase $e.phase.name: $e.message"
 			}
 		}
 
@@ -108,10 +117,24 @@ abstract class DataMungingGui {
 
 	private void unhighlightPhase( Phase phase ) {
 		getLabelFor( phase ).foreground = COLOUR_COMPLETED_PHASE
+		currentPhasePanel.removeAll()
+		currentPhasePanel.revalidate()
+		currentPhasePanel.repaint()
 	}
 
 	private void highlightPhase( Phase phase ) {
-		getLabelFor( phase ).foreground = COLOUR_CURRENT_PHASE
+		try {
+			JComponent gui = phase.gui
+			getLabelFor( phase ).foreground = COLOUR_CURRENT_PHASE
+			if ( gui ) {
+				currentPhasePanel.add( gui )
+				currentPhasePanel.revalidate()
+				currentPhasePanel.repaint()
+			}
+		currentPhaseDoneButton.visible = phase.requiresUserInteraction()
+		} catch ( PhaseFailedException e ) {
+			System.err.println "Failed phase $e.phase.name: $e.message"
+		}
 	}
 
 	private JLabel getLabelFor( Phase phase ) {
@@ -124,6 +147,11 @@ abstract class DataMungingGui {
 
 	protected def help = {
 		// TODO: Navigate to GitHub wiki.
+	}
+
+	def phaseDone = {
+		currentPhase.execute()
+		nextPhase()
 	}
 
 }

@@ -1,6 +1,5 @@
 package com.serwylo.ops.electrodes.phases
 
-import com.serwylo.ops.Phase
 import com.serwylo.ops.PhaseFailedException
 import com.serwylo.uno.spreadsheet.CsvOptions
 import groovy.swing.SwingBuilder
@@ -13,7 +12,7 @@ class LoadData extends ElectrodesPhase {
 
 	@Override
 	boolean requiresUserInteraction() {
-		true
+		false
 	}
 
 	@Override
@@ -26,7 +25,7 @@ class LoadData extends ElectrodesPhase {
 
 		if ( DEMO_FILE ) {
 			CsvOptions options = new CsvOptions( fieldDelimiters: CsvOptions.TAB, hideFrame: false )
-			model.load( new File( DEMO_FILE ), options )
+			data.load( new File( DEMO_FILE ), options )
 			return
 		}
 
@@ -38,7 +37,7 @@ class LoadData extends ElectrodesPhase {
 
 		if ( fc.showOpenDialog( null ) == JFileChooser.APPROVE_OPTION ) {
 			CsvOptions options = new CsvOptions( fieldDelimiters: CsvOptions.TAB, hideFrame : false )
-			model.load( fc.selectedFile, options )
+			data.load( fc.selectedFile, options )
 		} else {
 			throw new PhaseFailedException( this, "You must select a data file to load." )
 		}

@@ -27,13 +27,13 @@ class ElectrodesDataMungingGui extends DataMungingGui {
 	private Model model = new Model()
 
 	private List<Phase> phaseList = [
-		new LoadData( model: model ),
-		new IdentifyElectrodes( model: model ),
-		new FindEmptyElectrodes( model: model ),
-		new FindWeirdElectrodes( model: model ),
-		new ConfirmWeirdElectrodes( model: model ),
-		new SpecifySuspectElectrodes( model: model ),
-		new SpecifyElectrodesToAverage( model: model ),
+		new LoadData( data: model ),
+		new IdentifyElectrodes( data: model ),
+		new FindEmptyElectrodes( data: model ),
+		new FindWeirdElectrodes( data: model ),
+		/*new ConfirmWeirdElectrodes( data: model ),*/
+		new SpecifySuspectElectrodes( data: model ),
+		new SpecifyElectrodesToAverage( data: model ),
 	]
 
 	@Override
