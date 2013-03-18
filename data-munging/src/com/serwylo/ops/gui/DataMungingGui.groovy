@@ -1,4 +1,4 @@
-package com.serwylo.ops
+package com.serwylo.ops.gui
 
 import com.serwylo.ops.Phase
 import com.serwylo.ops.PhaseFailedException

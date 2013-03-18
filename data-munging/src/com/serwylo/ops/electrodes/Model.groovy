@@ -8,14 +8,15 @@ import com.sun.star.sheet.XSpreadsheetDocument
 class Model {
 
 	SpreadsheetConnector connector
-	XSpreadsheetDocument document     = null
-	CsvOptions options                = null
-	File file                         = null
-	Headers headers                   = null
-	List<String> deadColumns          = []
-	List<String> weirdColumns         = []
-	List<String> confirmedDeadColumns = []
-	List<String> manualDeadColumns    = []
+	XSpreadsheetDocument document                = null
+	CsvOptions options                           = null
+	File file                                    = null
+	Headers headers                              = null
+	List<String> deadColumns                     = []
+	List<String> weirdColumns                    = []
+	List<String> confirmedDeadColumns            = []
+	List<String> manualDeadColumns               = []
+	Map<String,List<String>> electrodesToAverage = [:]
 
 	void load( File file, CsvOptions options ) {
 		this.file    = file
