@@ -1,5 +1,6 @@
 package com.serwylo.ops.electrodes.gui
 
+import com.kitfox.svg.RenderableElement
 import com.kitfox.svg.SVGCache
 import com.kitfox.svg.SVGDiagram
 import com.kitfox.svg.SVGElement
@@ -7,6 +8,8 @@ import com.kitfox.svg.animation.AnimationElement
 import com.kitfox.svg.app.beans.SVGPanel
 import sun.awt.image.ImageFormatException
 
+import javax.swing.JDialog
+import javax.swing.JOptionPane
 import javax.swing.JPanel
 import java.awt.Color
 import java.awt.Dimension
@@ -17,12 +20,16 @@ import java.awt.geom.Point2D
 
 class ElectrodeSelector extends JPanel {
 
-	private SVGPanel             panel
-	private SVGDiagram           diagram
+	private SVGPanel panel
+	private SVGDiagram diagram
 	private SVGElement keyNormal, keyDead, keyWeird, keySelected
 	private Map<String, Integer> electrodeLabels
 
-	private List<String>         deadElectrodes = [], weirdElectrodes = [], selectedElectrodes = []
+	private List<String> deadElectrodes = [],
+		weirdElectrodes         = [],
+		selectedElectrodes      = [],
+		forceSelectedElectrodes = [],
+		unselectableElectrodes  = []
 
 	public ElectrodeSelector( Map<String, Integer> electrodes ) {
 
@@ -44,6 +51,8 @@ class ElectrodeSelector extends JPanel {
 
 		electrodes.keySet().each { colName ->
 			SVGElement element = diagram.getElement( colName )
+
+			// Need to reset, because we potentially loaded a cached SVG, in which case the styles will have changed...
 			reset( element )
 		}
 
@@ -62,8 +71,6 @@ class ElectrodeSelector extends JPanel {
 		})
 
 		add( panel )
-
-		this.background = Color.WHITE
 	}
 
 	public void setPreferredSize( Dimension size ) {
@@ -111,7 +118,36 @@ class ElectrodeSelector extends JPanel {
 		return uri
 	}
 
+	public boolean isForceSelected( String electrode ) {
+		forceSelectedElectrodes.contains( electrode )
+	}
+
+	public boolean isUnselectable( String electrode ) {
+		unselectableElectrodes.contains( electrode )
+	}
+
+	public void setUnselectableElectrodes( List<String> electrodes ) {
+		electrodes.each {
+			assert( !forceSelectedElectrodes.contains( it ) )
+			if ( selectedElectrodes.contains( it ) ) {
+				markUnselected( it )
+			}
+		}
+		unselectableElectrodes = electrodes
+	}
+
+	public void setForceSelectedElectrodes( List<String> electrodes ) {
+		electrodes.each {
+			assert( !unselectableElectrodes.contains( it ) )
+			if ( !selectedElectrodes.contains( it ) ) {
+				markSelected( it )
+			}
+		}
+		forceSelectedElectrodes = electrodes
+	}
+
 	public void setSelectedElectrodes( List<String> electrodes ) {
+		electrodes.removeAll( unselectableElectrodes )
 		selectedElectrodes.each { colName -> reset( diagram.getElement( colName ) ) }
 		selectedElectrodes = electrodes
 		selectedElectrodes.each { colName -> selected( diagram.getElement( colName ) ) }
@@ -135,12 +171,29 @@ class ElectrodeSelector extends JPanel {
 
 	void toggleElectrode( SVGElement element ) {
 		if ( selectedElectrodes.contains( element.id ) ) {
-			selectedElectrodes.remove( element.id )
-			unselected( element )
+			if ( isForceSelected( element.id ) ) {
+				JOptionPane.showMessageDialog( null, "Cannot deselect electrode $element.id" )
+			} else {
+				markUnselected( element.id )
+			}
 		} else {
-			selectedElectrodes.add( element.id )
-			selected( element )
+			if ( isUnselectable( element.id ) ) {
+				JOptionPane.showMessageDialog( null, "Cannot select electrode $element.id" )
+			} else {
+				markSelected( element.id )
+			}
 		}
+	}
+
+	private void markUnselected( String electrode ) {
+		selectedElectrodes.remove( electrode )
+		unselected( diagram.getElement( electrode ) )
+		panel.repaint()
+	}
+
+	private void markSelected( String electrode ) {
+		selectedElectrodes.add( electrode )
+		selected( diagram.getElement( electrode ) )
 		panel.repaint()
 	}
 
@@ -216,4 +269,26 @@ class ElectrodeSelector extends JPanel {
 		copyFillStyle( keyWeird, element )
 	}
 
+	void resetAll() {
+		this.selectedElectrodes = []
+		this.deadElectrodes     = []
+		this.weirdElectrodes    = []
+		electrodeLabels.each { entry ->
+			reset( diagram.getElement( entry.key ) )
+		}
+	}
+
+	List<String> calcNearestElectrodes( String electrode, int numClosest ) {
+		SortedMap<String, Double> distanceMeasures = new TreeMap<String, Double>()
+		RenderableElement from = (RenderableElement)diagram.getElement( electrode )
+		electrodeLabels.each { entry ->
+			RenderableElement to = (RenderableElement)diagram.getElement( entry.key )
+			Double deltaX = to.boundingBox.x - from.boundingBox.x
+			Double deltaY = to.boundingBox.y - from.boundingBox.y
+			distanceMeasures.put( entry.key, deltaX * deltaX + deltaY * deltaY )
+		}
+		List<String> sorted = distanceMeasures.sort { e1, e2 -> e1.value <=> e2.value }.keySet().toList()
+		sorted.remove( electrode )
+		sorted.subList( 0, numClosest )
+	}
 }

@@ -28,7 +28,7 @@ class FindWeirdElectrodes extends ElectrodesPhase {
 	}
 
 	@Override
-	void execute() {
+	boolean execute() {
 
 		Calculator calc        = new Calculator( data.document, 0 )
 		XCellRange valueRange  = data.document[ 0 ].getCellRangeByPosition( 0, data.headers.startRow, data.headers.electrodeLabels.size() - 1, 1000000 )
@@ -54,6 +54,8 @@ class FindWeirdElectrodes extends ElectrodesPhase {
 				data.weirdColumns.add( label )
 			}
 		}
+
+		true
 	}
 
 	private void markAsTooHigh( String colName ) {

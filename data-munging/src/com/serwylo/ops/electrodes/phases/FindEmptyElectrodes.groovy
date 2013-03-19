@@ -22,7 +22,8 @@ class FindEmptyElectrodes extends ElectrodesPhase {
 	}
 
 	@Override
-	void execute() {
+	boolean execute() {
+
 		List<Object> firstRow = getFirstRow()
 		data.headers.electrodeLabels.each { entry ->
 
@@ -35,6 +36,7 @@ class FindEmptyElectrodes extends ElectrodesPhase {
 			}
 		}
 
+		true
 	}
 
 	private void markAsDead( String colName ) {

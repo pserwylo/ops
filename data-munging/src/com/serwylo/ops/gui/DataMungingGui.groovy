@@ -12,6 +12,7 @@ import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 import java.awt.BorderLayout
 import java.awt.Color
 
@@ -100,19 +101,9 @@ abstract class DataMungingGui {
 
 		if ( !allCompleted ) {
 			highlightPhase( currentPhase )
-			println "Starting phase: $currentPhase"
-			try {
-				if ( !currentPhase.requiresUserInteraction() ) {
-					currentPhase.execute()
-					nextPhase()
-				} else {
-					// Wait for the user to click the "Done" button.
-				}
-			} catch ( PhaseFailedException e ) {
-				System.err.println "Failed phase $e.phase.name: $e.message"
-			}
+			println "PHASE RUNNER: Created new thread for $currentPhase"
+			new Thread( phaseRunner ).run()
 		}
-
 	}
 
 	private void unhighlightPhase( Phase phase ) {
@@ -149,9 +140,56 @@ abstract class DataMungingGui {
 		// TODO: Navigate to GitHub wiki.
 	}
 
+	Runnable phaseRunner = new PhaseRunner()
+	Runnable doneClicked = new DoneClicked()
+
 	def phaseDone = {
-		currentPhase.execute()
-		nextPhase()
+		println "PHASE RUNNER: Clicked 'DONE'. Queuing phase runner thread."
+		SwingUtilities.invokeLater( doneClicked )
+	}
+
+	Phase getCurrentPhase() {
+		currentPhase
+	}
+
+	class DoneClicked implements Runnable {
+		@Override
+		void run() {
+			println "DONE CLICKED: Start ${getCurrentPhase()}"
+			if ( getCurrentPhase().execute() ) {
+				println "DONE CLICKED: Executing done, nextPhase()"
+				nextPhase()
+			}
+			println "DONE CLICKED: Done"
+		}
+	}
+
+	class PhaseRunner implements Runnable {
+		@Override
+		void run() {
+			println "PHASE RUNNER: Start"
+			if ( !getCurrentPhase().requiresUserInteraction() ) {
+				println "PHASE RUNNER: Doesn't require interaction, so attempting execute continually."
+				try {
+
+					boolean continueOn = false
+					while ( !continueOn ) {
+						continueOn = getCurrentPhase().execute()
+					}
+
+					println "PHASE RUNNER: nextPhase() started - ${getCurrentPhase()}"
+					nextPhase()
+					println "PHASE RUNNER: nextPhase() completed"
+
+				} catch ( PhaseFailedException e ) {
+					System.err.println "Failed phase $e.phase.name: $e.message"
+				}
+			} else {
+				println "PHASE RUNNER: Not invoking execute (instead waiting for user interaction)"
+				// Wait for the user to click the "Done" button.
+			}
+			println "PHASE RUNNER: run() completed"
+		}
 	}
 
 }

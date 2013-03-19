@@ -1,5 +1,6 @@
 package com.serwylo.ops.electrodes
 
+import com.serwylo.ops.electrodes.phases.AverageElectrodes
 import com.serwylo.ops.gui.DataMungingGui
 import com.serwylo.ops.Phase
 import com.serwylo.ops.electrodes.phases.FindEmptyElectrodes
@@ -32,6 +33,7 @@ class ElectrodesDataMungingGui extends DataMungingGui {
 		new FindWeirdElectrodes( data: model ),
 		new SpecifySuspectElectrodes( data: model ),
 		new SpecifyElectrodesToAverage( data: model ),
+		new AverageElectrodes( data: model ),
 	]
 
 	@Override

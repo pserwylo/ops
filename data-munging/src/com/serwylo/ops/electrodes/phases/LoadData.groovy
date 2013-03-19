@@ -21,12 +21,12 @@ class LoadData extends ElectrodesPhase {
 	}
 
 	@Override
-	void execute() throws PhaseFailedException {
+	boolean execute() throws PhaseFailedException {
 
 		if ( DEMO_FILE ) {
 			CsvOptions options = new CsvOptions( fieldDelimiters: CsvOptions.TAB, hideFrame: false )
 			data.load( new File( DEMO_FILE ), options )
-			return
+			return true
 		}
 
 		JFileChooser fc = new SwingBuilder().fileChooser(
@@ -38,8 +38,9 @@ class LoadData extends ElectrodesPhase {
 		if ( fc.showOpenDialog( null ) == JFileChooser.APPROVE_OPTION ) {
 			CsvOptions options = new CsvOptions( fieldDelimiters: CsvOptions.TAB, hideFrame : false )
 			data.load( fc.selectedFile, options )
+			return true
 		} else {
-			throw new PhaseFailedException( this, "You must select a data file to load." )
+			return false
 		}
 
 	}

@@ -23,12 +23,13 @@ class IdentifyElectrodes extends ElectrodesPhase {
 	}
 
 	@Override
-	void execute() throws PhaseFailedException {
+	boolean execute() throws PhaseFailedException {
 		XCellRange header = data.document[ 0 ][ "A1:ZZ20" ]
 		XCellRangeFormula formulas = header.cellRangeFormula
 		Headers values = new Headers()
 		values.parse( formulas.formulaArray )
 		data.headers = values
+		true
 	}
 
 }

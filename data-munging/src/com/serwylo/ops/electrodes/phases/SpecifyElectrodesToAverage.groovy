@@ -1,6 +1,5 @@
 package com.serwylo.ops.electrodes.phases
 
-import com.serwylo.ops.Phase
 import com.serwylo.ops.electrodes.gui.ElectrodeSelector
 
 import javax.swing.JComponent
@@ -35,17 +34,42 @@ class SpecifyElectrodesToAverage extends ElectrodesPhase {
 	}
 
 	@Override
-	void execute() {
+	boolean execute() {
 		data.electrodesToAverage[ currentElectrode ] = selector.selectedElectrodes
-		println "For $currentElectrode, average $selector.selectedElectrodes"
+		println "For $currentElectrode, averaging $selector.selectedElectrodes"
+
+		return nextElectrode() == null
 	}
 
 	JComponent getGui() {
-		currentElectrode        = data.confirmedDeadColumns[ 0 ]
-		selector                = new ElectrodeSelector( data.headers.electrodeLabels )
-		selector.deadElectrodes = [ currentElectrode ]
-		selector.minimumSize    = new Dimension( 600, 400 )
-		selector.preferredSize  = new Dimension( 600, 400 )
+		selector                 = new ElectrodeSelector( data.headers.electrodeLabels )
+		selector.minimumSize     = new Dimension( 600, 400 )
+		selector.preferredSize   = new Dimension( 600, 400 )
+		nextElectrode()
 		selector
+	}
+
+	private String nextElectrode() {
+		if ( !currentElectrode ) {
+			currentElectrode = data.confirmedDeadColumns[ 0 ]
+		} else {
+			int index = data.confirmedDeadColumns.indexOf( currentElectrode )
+			if ( index == -1 || index >= data.confirmedDeadColumns.size() - 1 ) {
+				currentElectrode = null
+			} else {
+				currentElectrode = data.confirmedDeadColumns[ index + 1 ]
+			}
+		}
+
+		if ( currentElectrode ) {
+			selector.resetAll()
+			selector.deadElectrodes         = data.confirmedDeadColumns - [ currentElectrode ]
+			selector.weirdElectrodes        = [ currentElectrode ]
+			selector.unselectableElectrodes = data.confirmedDeadColumns
+			selector.selectedElectrodes     = selector.calcNearestElectrodes( currentElectrode, 8 )
+		}
+
+		selector.repaint()
+		currentElectrode
 	}
 }

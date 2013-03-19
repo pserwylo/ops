@@ -1,22 +1,10 @@
 package com.serwylo.ops.electrodes.phases
 
-import com.kitfox.svg.SVGCache
-import com.kitfox.svg.SVGDiagram
-import com.kitfox.svg.SVGElement
-import com.kitfox.svg.animation.AnimationElement
-import com.kitfox.svg.app.beans.SVGPanel
 import com.serwylo.ops.PhaseFailedException
 import com.serwylo.ops.electrodes.gui.ElectrodeSelector
-import com.sun.star.auth.InvalidArgumentException
-import groovy.swing.SwingBuilder
 
 import javax.swing.JComponent
-import javax.swing.SwingUtilities
-import java.awt.Color
 import java.awt.Dimension
-import java.awt.Point
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 
 /**
  *
@@ -42,18 +30,20 @@ class SpecifySuspectElectrodes extends ElectrodesPhase {
 	}
 
 	@Override
-	void execute() {
+	boolean execute() {
 		data.confirmedDeadColumns = selector.selectedElectrodes
+		return true
 	}
 
 	JComponent getGui() {
 		try {
 			selector = new ElectrodeSelector( data.headers.electrodeLabels )
-			selector.deadElectrodes     = data.deadColumns
-			selector.weirdElectrodes    = data.weirdColumns
-			// selector.selectedElectrodes = data.weirdColumns + data.deadColumns
-			selector.minimumSize        = new Dimension( 600, 400 )
-			selector.preferredSize      = new Dimension( 600, 400 )
+			selector.deadElectrodes          = data.deadColumns
+			selector.weirdElectrodes         = data.weirdColumns
+			selector.forceSelectedElectrodes = data.deadColumns
+			// selector.selectedElectrodes      = data.weirdColumns + data.deadColumns
+			selector.minimumSize             = new Dimension( 600, 400 )
+			selector.preferredSize           = new Dimension( 600, 400 )
 			selector
 		} catch ( Exception e ) {
 			throw new PhaseFailedException( this, "Error specifying suspect electrodes: $e.message", e )

@@ -10,7 +10,7 @@ abstract class Phase {
 
 	abstract String getName()
 
-	abstract void execute()
+	abstract boolean execute()
 
 	String getDescription() {
 		""
