@@ -24,12 +24,16 @@ class FindEmptyElectrodes extends ElectrodesPhase {
 	@Override
 	boolean execute() {
 
+		dispatchProgressEvent( 0, "Looking for empty files..." )
+
 		List<Object> firstRow = getFirstRow()
 		data.headers.electrodeLabels.each { entry ->
 
 			Integer index  = entry.value
 			String colName = entry.key
 			assert( firstRow.size() > index )
+
+			dispatchProgressEvent( (int)( index / data.headers.electrodeLabels.size() * 100 ), "Checking column $index of ${data.headers.electrodeLabels.size()}..." )
 
 			if ( isEmpty( firstRow[ index ] ) ) {
 				markAsDead( colName )

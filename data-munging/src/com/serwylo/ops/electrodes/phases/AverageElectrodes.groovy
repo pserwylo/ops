@@ -30,20 +30,25 @@ class AverageElectrodes extends ElectrodesPhase {
 		int startRow = data.headers.startRow + 1
 		int endRow   = data.document[ 0 ].dimensions.Row + 1
 
+		String[][] formulas = new String[ endRow - startRow + 1 ][]
+
 		data.confirmedDeadColumns.each { electrode ->
 
 			List<String> toAverage = data.electrodesToAverage[ electrode ]
-			String[][] formulas = new String[ endRow - startRow + 1 ][]
 
 			for ( def row in startRow..endRow ) {
+
 				String cellsToAverage = toAverage.collect {
 					String colIndexName = ColumnUtils.indexToName( data.headers.electrodeLabels[ it ] )
 					"$colIndexName$row"
 				}.join( ";" )
 				String formula = "=AVERAGE($cellsToAverage)"
-				String[] formulaArray = new String[ 1 ]
-				formulaArray[ 0 ] = formula
-				formulas[ row - startRow ] = formulaArray
+
+				if ( !formulas[ row - startRow ] ) {
+					formulas[ row - startRow ] = new String[ 1 ]
+				}
+
+				formulas[ row - startRow ][ 0 ] = formula
 			}
 
 			Integer colIndex = data.headers.electrodeLabels[ electrode ]

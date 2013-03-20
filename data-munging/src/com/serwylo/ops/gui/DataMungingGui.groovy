@@ -12,6 +12,7 @@ import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JProgressBar
 import javax.swing.SwingUtilities
 import java.awt.BorderLayout
 import java.awt.Color
@@ -25,10 +26,14 @@ abstract class DataMungingGui {
 	protected Map<Phase, JLabel> phaseComponents = [:]
 	private SwingBuilder uiBuilder               = new SwingBuilder()
 
-	Phase   currentPhase
-	JPanel  currentPhasePanel
-	JButton currentPhaseDoneButton
-	JFrame  windowFrame
+	Phase        currentPhase
+	JPanel       currentPhasePanel
+	JButton      currentPhaseDoneButton
+	JFrame       windowFrame
+	JLabel       currentStatusLabel
+	JProgressBar currentProgressBar
+
+
 
 	public show() {
 
@@ -51,9 +56,17 @@ abstract class DataMungingGui {
 					boxLayout( axis : BoxLayout.Y_AXIS )
 				}
 
-				currentPhasePanel = panel( constraints : BorderLayout.CENTER )
+				panel( constraints : BorderLayout.CENTER ) {
+					borderLayout( axis : BoxLayout.Y_AXIS )
+					currentPhasePanel      = panel( constraints : BorderLayout.CENTER )
+					currentPhaseDoneButton = button( "Done", actionPerformed: phaseDone, constraints: BorderLayout.SOUTH )
+				}
 
-				currentPhaseDoneButton = button( "Done", actionPerformed: phaseDone, constraints: BorderLayout.SOUTH )
+				panel( constraints: BorderLayout.SOUTH ) {
+					boxLayout( axis : BoxLayout.Y_AXIS )
+					currentStatusLabel = label()
+					currentProgressBar = progressBar( minimum : 0, maximum : 100 )
+				}
 
 				panel( constraints : BorderLayout.EAST ) {
 					boxLayout( axis : BoxLayout.Y_AXIS )
@@ -64,7 +77,8 @@ abstract class DataMungingGui {
 			}
 		}
 
-		nextPhase()
+		phaseRunner.nextPhase = phases[ 0 ]
+		new Thread( phaseRunner ).run()
 	}
 
 	abstract List<Phase> getPhases()
@@ -75,34 +89,16 @@ abstract class DataMungingGui {
 		this.uiBuilder
 	}
 
+	protected void updateProgress( int progress, String currentDescription ) {
+		currentStatusLabel.text  = currentDescription
+		currentProgressBar.value = progress
+	}
+
 	private void createPhaseComponents() {
 		List<Phase> phaseList = getPhases()
 		phaseList.eachWithIndex { phase, index ->
 			JLabel label = ui.label( text : "${index + 1}: $phase.name", foreground: COLOUR_FUTURE_PHASE )
 			phaseComponents.putAt( phase, label )
-		}
-	}
-
-	protected void nextPhase() {
-
-		boolean allCompleted = false
-
-		if ( currentPhase ) {
-			unhighlightPhase( currentPhase )
-			Integer index = phases.indexOf( currentPhase )
-			if ( index < phases.size() - 1 ) {
-				currentPhase = phases[ index + 1 ]
-			} else {
-				allCompleted = true
-			}
-		} else {
-			currentPhase = phases[ 0 ]
-		}
-
-		if ( !allCompleted ) {
-			highlightPhase( currentPhase )
-			println "PHASE RUNNER: Created new thread for $currentPhase"
-			new Thread( phaseRunner ).run()
 		}
 	}
 
@@ -115,14 +111,15 @@ abstract class DataMungingGui {
 
 	private void highlightPhase( Phase phase ) {
 		try {
-			JComponent gui = phase.gui
 			getLabelFor( phase ).foreground = COLOUR_CURRENT_PHASE
+			updateProgress( 0, "" )
+			JComponent gui = phase.gui
 			if ( gui ) {
 				currentPhasePanel.add( gui )
 				currentPhasePanel.revalidate()
 				currentPhasePanel.repaint()
 			}
-		currentPhaseDoneButton.visible = phase.requiresUserInteraction()
+			currentPhaseDoneButton.visible = phase.requiresUserInteraction()
 		} catch ( PhaseFailedException e ) {
 			System.err.println "Failed phase $e.phase.name: $e.message"
 		}
@@ -140,55 +137,106 @@ abstract class DataMungingGui {
 		// TODO: Navigate to GitHub wiki.
 	}
 
-	Runnable phaseRunner = new PhaseRunner()
-	Runnable doneClicked = new DoneClicked()
+	PhaseRunner phaseRunner = new PhaseRunner()
 
 	def phaseDone = {
-		println "PHASE RUNNER: Clicked 'DONE'. Queuing phase runner thread."
-		SwingUtilities.invokeLater( doneClicked )
+		println "Y: Clicked done. Queuing next phase."
+		int index = getPhases().indexOf( phaseRunner.currentPhase )
+		println "Y: Found phase index at $index"
+		if ( index != -1 ) {
+			if ( index < phases.size() - 1 ) {
+				Phase next = phases[ index + 1 ]
+				println "Y: Next phase will be - $next"
+				phaseRunner.nextPhaseAfterGui = next
+			} else {
+				println "Y: All completed"
+				phaseRunner.allCompleted = true
+			}
+		}
 	}
 
 	Phase getCurrentPhase() {
 		currentPhase
 	}
 
-	class DoneClicked implements Runnable {
-		@Override
-		void run() {
-			println "DONE CLICKED: Start ${getCurrentPhase()}"
-			if ( getCurrentPhase().execute() ) {
-				println "DONE CLICKED: Executing done, nextPhase()"
-				nextPhase()
-			}
-			println "DONE CLICKED: Done"
-		}
-	}
-
 	class PhaseRunner implements Runnable {
+
+		public  Phase   nextPhase
+		public  Phase   nextPhaseAfterGui
+		public  boolean allCompleted = false
+
+		private Phase   currentPhase
+		private boolean pendingGuiResponse = false
+
 		@Override
 		void run() {
-			println "PHASE RUNNER: Start"
-			if ( !getCurrentPhase().requiresUserInteraction() ) {
-				println "PHASE RUNNER: Doesn't require interaction, so attempting execute continually."
-				try {
+
+			while ( true ) {
+
+				if ( allCompleted ) {
+					println "X: All completed. Bailing loop."
+					break
+				}
+
+				if ( nextPhase ) {
+					println "X: Next phase ($nextPhase)"
+					if ( currentPhase ) {
+						println "X: First, lets unhighlight $currentPhase"
+						unhighlightPhase( currentPhase )
+					}
+					println "X: Starting phase $nextPhase"
+					currentPhase = nextPhase
+					println "X: Highlighting phase - $currentPhase"
+					highlightPhase( currentPhase )
+					nextPhase          = null
+					nextPhaseAfterGui  = null
+					pendingGuiResponse = false
+				}
+
+				if ( nextPhaseAfterGui ) {
+					println "X: Gui phase - about to start next phase. Lets execute first."
+					if ( !currentPhase.execute() ) {
+						nextPhaseAfterGui = null
+						continue
+					}
+					println "X: Done executing gui phase"
+					nextPhase          = nextPhaseAfterGui
+					nextPhaseAfterGui  = null
+					pendingGuiResponse = false
+				}
+
+				if ( pendingGuiResponse || !currentPhase ) {
+					println pendingGuiResponse ? "X: - pending gui" : "X: - current phase"
+					Thread.sleep( 1000 )
+					continue
+				}
+
+				if ( !currentPhase.requiresUserInteraction() ) {
 
 					boolean continueOn = false
 					while ( !continueOn ) {
-						continueOn = getCurrentPhase().execute()
+						println "X: No interaction, attempting execution"
+						continueOn = currentPhase.execute()
+						if ( continueOn ) {
+							println "X: Execution fine, roceeding"
+						}
 					}
 
-					println "PHASE RUNNER: nextPhase() started - ${getCurrentPhase()}"
-					nextPhase()
-					println "PHASE RUNNER: nextPhase() completed"
-
-				} catch ( PhaseFailedException e ) {
-					System.err.println "Failed phase $e.phase.name: $e.message"
+					int index = getPhases().indexOf( currentPhase )
+					if ( index != -1 ) {
+						if ( index < getPhases().size() - 1 ) {
+							println "X: Completed no interaction, queueing next phase"
+							nextPhase = getPhases()[ index + 1 ]
+						} else {
+							println "X: Completed no interaction, all completed"
+							allCompleted = true
+						}
+					}
+				} else {
+					pendingGuiResponse = true
+					println "X: Pending gui response"
 				}
-			} else {
-				println "PHASE RUNNER: Not invoking execute (instead waiting for user interaction)"
-				// Wait for the user to click the "Done" button.
 			}
-			println "PHASE RUNNER: run() completed"
 		}
 	}
 

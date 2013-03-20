@@ -24,6 +24,7 @@ class IdentifyElectrodes extends ElectrodesPhase {
 
 	@Override
 	boolean execute() throws PhaseFailedException {
+		dispatchProgressEvent( 20, "Searching document for electrode data..." )
 		XCellRange header = data.document[ 0 ][ "A1:ZZ20" ]
 		XCellRangeFormula formulas = header.cellRangeFormula
 		Headers values = new Headers()
