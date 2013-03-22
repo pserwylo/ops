@@ -4,8 +4,9 @@ import com.serwylo.ops.Phase
 
 class ProgressEvent {
 
-	int    progress
+	double progress
 	String currentDescription
+	boolean indeterminate = false
 	Phase  owner
 
 }

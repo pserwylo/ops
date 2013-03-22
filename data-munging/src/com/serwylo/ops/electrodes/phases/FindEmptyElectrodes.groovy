@@ -33,7 +33,7 @@ class FindEmptyElectrodes extends ElectrodesPhase {
 			String colName = entry.key
 			assert( firstRow.size() > index )
 
-			dispatchProgressEvent( (int)( index / data.headers.electrodeLabels.size() * 100 ), "Checking column $index of ${data.headers.electrodeLabels.size()}..." )
+			dispatchProgressEvent( (double)index / data.headers.electrodeLabels.size() * 100, "Checking column $index of ${data.headers.electrodeLabels.size()}..." )
 
 			if ( isEmpty( firstRow[ index ] ) ) {
 				markAsDead( colName )

@@ -40,7 +40,7 @@ class FindWeirdElectrodes extends ElectrodesPhase {
 			String label = it.key
 			int colIndex = it.value
 
-			dispatchProgressEvent( (int)( colIndex / data.headers.electrodeLabels.size() * 100 ), "Checking column $colIndex of ${data.headers.electrodeLabels.size()} to see if empty..." )
+			dispatchProgressEvent( (double)colIndex / data.headers.electrodeLabels.size() * 100, "Checking column $colIndex of ${data.headers.electrodeLabels.size()} to see if empty..." )
 
 			if ( data.deadColumns.contains( colIndex ) ) {
 				return

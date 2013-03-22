@@ -8,7 +8,7 @@ import javax.swing.JFileChooser
 
 class LoadData extends ElectrodesPhase {
 
-	private static final String DEMO_FILE = "/home/pete/Documents/people/felicia/data-50000.csv"
+	private static final String DEMO_FILE = "/home/pete/Documents/people/felicia/data.csv"
 
 	@Override
 	boolean requiresUserInteraction() {
@@ -25,12 +25,12 @@ class LoadData extends ElectrodesPhase {
 
 		if ( DEMO_FILE ) {
 			CsvOptions options = new CsvOptions( fieldDelimiters: CsvOptions.TAB, hideFrame: false )
-			dispatchProgressEvent( 20, "Loading file '$DEMO_FILE'" )
+			dispatchIndeterminateProgressEvent( "Loading file '$DEMO_FILE'..." )
 			data.load( new File( DEMO_FILE ), options )
 			return true
 		}
 
-		dispatchProgressEvent( 10, "Choosing data file to load..." )
+		dispatchIndeterminateProgressEvent( "Choosing data file to load..." )
 
 		JFileChooser fc = new SwingBuilder().fileChooser(
 			dialogTitle: "Load electrodes data file",
@@ -40,7 +40,7 @@ class LoadData extends ElectrodesPhase {
 
 		if ( fc.showOpenDialog( null ) == JFileChooser.APPROVE_OPTION ) {
 			CsvOptions options = new CsvOptions( fieldDelimiters: CsvOptions.TAB, hideFrame : false )
-			dispatchProgressEvent( 20, "Loading file '$DEMO_FILE'..." )
+			dispatchIndeterminateProgressEvent( "Loading file '$fc.selectedFile'..." )
 			data.load( fc.selectedFile, options )
 			return true
 		} else {

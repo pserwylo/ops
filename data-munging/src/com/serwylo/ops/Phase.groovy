@@ -1,7 +1,6 @@
 package com.serwylo.ops
 
 import com.serwylo.ops.gui.ProgressEvent
-import groovy.swing.SwingBuilder
 
 import javax.swing.JComponent
 
@@ -27,9 +26,15 @@ abstract class Phase {
 
 	ProgressListener progressListener
 
-	protected void dispatchProgressEvent( int progress, String currentDescription ) {
+	protected void dispatchProgressEvent( double progress, String currentDescription ) {
 		if ( progressListener ) {
 			progressListener.onProgress( new ProgressEvent( progress : progress, currentDescription : currentDescription ) )
+		}
+	}
+
+	protected void dispatchIndeterminateProgressEvent( String currentDescription ) {
+		if ( progressListener ) {
+			progressListener.onProgress( new ProgressEvent( currentDescription : currentDescription, indeterminate: true ) )
 		}
 	}
 

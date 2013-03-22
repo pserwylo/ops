@@ -1,9 +1,8 @@
 package com.serwylo.ops.gui
 
 import com.serwylo.ops.Phase
+import com.serwylo.ops.Phase.ProgressListener
 import com.serwylo.ops.PhaseFailedException
-import com.serwylo.ops.electrodes.Model
-import com.serwylo.ops.electrodes.phases.*
 import groovy.swing.SwingBuilder
 
 import javax.swing.BoxLayout
@@ -13,11 +12,10 @@ import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JProgressBar
-import javax.swing.SwingUtilities
 import java.awt.BorderLayout
 import java.awt.Color
 
-abstract class DataMungingGui {
+abstract class DataMungingGui implements ProgressListener {
 
 	private static final COLOUR_COMPLETED_PHASE  = Color.GREEN
 	private static final COLOUR_CURRENT_PHASE    = Color.BLUE
@@ -57,7 +55,7 @@ abstract class DataMungingGui {
 				}
 
 				panel( constraints : BorderLayout.CENTER ) {
-					borderLayout( axis : BoxLayout.Y_AXIS )
+					boxLayout( axis : BoxLayout.Y_AXIS )
 					currentPhasePanel      = panel( constraints : BorderLayout.CENTER )
 					currentPhaseDoneButton = button( "Done", actionPerformed: phaseDone, constraints: BorderLayout.SOUTH )
 				}
@@ -77,7 +75,7 @@ abstract class DataMungingGui {
 			}
 		}
 
-		phaseRunner.nextPhase = phases[ 0 ]
+		phaseRunner.nextPhase        = phases[ 0 ]
 		new Thread( phaseRunner ).run()
 	}
 
@@ -89,9 +87,18 @@ abstract class DataMungingGui {
 		this.uiBuilder
 	}
 
-	protected void updateProgress( int progress, String currentDescription ) {
-		currentStatusLabel.text  = currentDescription
-		currentProgressBar.value = progress
+	public void onProgress( ProgressEvent event ) {
+		currentStatusLabel.text  = event.currentDescription
+		if ( event.indeterminate ) {
+			currentProgressBar.indeterminate = true
+		} else {
+			currentProgressBar.indeterminate = false
+			currentProgressBar.value = event.progress
+		}
+	}
+
+	protected void resetProgress() {
+		onProgress( new ProgressEvent( progress: 0, currentDescription: "" ) )
 	}
 
 	private void createPhaseComponents() {
@@ -112,8 +119,9 @@ abstract class DataMungingGui {
 	private void highlightPhase( Phase phase ) {
 		try {
 			getLabelFor( phase ).foreground = COLOUR_CURRENT_PHASE
-			updateProgress( 0, "" )
-			JComponent gui = phase.gui
+			resetProgress()
+			phase.progressListener = this
+			JComponent gui         = phase.gui
 			if ( gui ) {
 				currentPhasePanel.add( gui )
 				currentPhasePanel.revalidate()
@@ -206,8 +214,7 @@ abstract class DataMungingGui {
 				}
 
 				if ( pendingGuiResponse || !currentPhase ) {
-					println pendingGuiResponse ? "X: - pending gui" : "X: - current phase"
-					Thread.sleep( 1000 )
+					// println pendingGuiResponse ? "X: - pending gui" : "X: - current phase"
 					continue
 				}
 
