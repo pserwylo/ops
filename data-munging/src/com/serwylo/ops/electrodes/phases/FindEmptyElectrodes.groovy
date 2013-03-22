@@ -24,7 +24,7 @@ class FindEmptyElectrodes extends ElectrodesPhase {
 	@Override
 	boolean execute() {
 
-		dispatchProgressEvent( 0, "Looking for empty files..." )
+		dispatchIndeterminateProgressEvent( "Looking for empty columns..." )
 
 		List<Object> firstRow = getFirstRow()
 		data.headers.electrodeLabels.each { entry ->
