@@ -52,7 +52,8 @@ class AverageElectrodes extends ElectrodesPhase {
 	}
 
 	private void progress( int colNumber ) {
-		double progress = (double)colNumber / ( data.confirmedDeadColumns.size() ) * 100
+		double progress  = (double)colNumber / ( data.confirmedDeadColumns.size() ) * 100
+		String electrode = data.confirmedDeadColumns[ colNumber ]
 		dispatchProgressEvent( progress, "Averaging $electrode..." )
 	}
 
