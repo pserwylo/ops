@@ -8,7 +8,7 @@ import javax.swing.JFileChooser
 
 class LoadData extends ElectrodesPhase {
 
-	private static final String DEMO_FILE = "/home/pete/Documents/people/felicia/data.csv"
+	private static final String DEMO_FILE = "/home/pete/Documents/people/felicia/data-short.csv"
 
 	@Override
 	boolean requiresUserInteraction() {
