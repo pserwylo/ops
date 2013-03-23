@@ -27,54 +27,43 @@ class AverageElectrodes extends ElectrodesPhase {
 
 	@Override
 	boolean execute() {
+
 		int startRow = data.headers.startRow + 1
 		int endRow   = data.document[ 0 ].dimensions.Row + 1
 
-		String[][] formulas = new String[ endRow - startRow + 1 ][]
-
-		double progressLeap = 100.0 / ( data.confirmedDeadColumns.size() )
-		int oneHundredth    = ( endRow + 1 - startRow ) / 100
-
 		data.confirmedDeadColumns.eachWithIndex { electrode, index ->
-
-			List<String> toAverage = data.electrodesToAverage[ electrode ]
-
-			double baseProgress = (double)index / ( data.confirmedDeadColumns.size() ) * 100
-			dispatchProgressEvent( baseProgress, "Preparing averages for $electrode..." )
-
-			double totalProgress = baseProgress
-
-			for ( def row in startRow..endRow ) {
-
-				if ( row % oneHundredth == 0 ) {
-					double miniProgress = ( row - startRow ) / ( endRow - startRow )
-					double absoluteMini = miniProgress * progressLeap
-					totalProgress       = baseProgress + absoluteMini
-					dispatchProgressEvent( totalProgress, "Preparing averages for $electrode (${(int)(miniProgress * 100 )}%)..." )
-				}
-
-				String cellsToAverage = toAverage.collect {
-					String colIndexName = ColumnUtils.indexToName( data.headers.electrodeLabels[ it ] )
-					"$colIndexName$row"
-				}.join( ";" )
-				String formula = "=AVERAGE($cellsToAverage)"
-
-				if ( !formulas[ row - startRow ] ) {
-					formulas[ row - startRow ] = new String[ 1 ]
-				}
-
-				formulas[ row - startRow ][ 0 ] = formula
-			}
-
-			dispatchProgressEvent( totalProgress, "Sending averages of $electrode to spreadsheet..." )
-
-			int colIndex = data.headers.electrodeLabels[ electrode ]
-			String colLetter = ColumnUtils.indexToName( colIndex )
-			String rangeAddress = "$colLetter$startRow:$colLetter$endRow"
-			XCellRange range = data.document[ 0 ][ rangeAddress ]
-			range.formulasFromArrays = formulas
+			progress( index )
+			average( electrode, startRow, endRow )
 		}
 		return true
+	}
+
+	private void average( String electrode, int startRow, int endRow ) {
+		List<String> toAverage = data.electrodesToAverage[ electrode ]
+		String formula         = generateFormula( toAverage, startRow )
+
+		int colIndex           = data.headers.electrodeLabels[ electrode ]
+		String colLetter       = ColumnUtils.indexToName( colIndex )
+		String rangeAddress    = "$colLetter$startRow:$colLetter$endRow"
+		XCellRange range       = data.document[ 0 ][ rangeAddress ]
+
+		range.getCellByPosition( 0, 0 ).formula = formula
+		range.fillDown()
+	}
+
+	private void progress( int colNumber ) {
+		double progress = (double)colNumber / ( data.confirmedDeadColumns.size() ) * 100
+		dispatchProgressEvent( progress, "Averaging $electrode..." )
+	}
+
+	private String generateFormula( List<String> toAverage, int startRow ) {
+
+		String cellsToAverage = toAverage.collect {
+			String colIndexName = ColumnUtils.indexToName( data.headers.electrodeLabels[ it ] )
+			"$colIndexName$startRow"
+		}.join( ";" )
+
+		"=AVERAGE($cellsToAverage)"
 	}
 
 }
