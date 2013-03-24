@@ -8,7 +8,6 @@ import com.kitfox.svg.animation.AnimationElement
 import com.kitfox.svg.app.beans.SVGPanel
 import sun.awt.image.ImageFormatException
 
-import javax.swing.JDialog
 import javax.swing.JOptionPane
 import javax.swing.JPanel
 import java.awt.Color
