@@ -8,7 +8,7 @@ import javax.swing.JFileChooser
 
 class LoadData extends ElectrodesPhase {
 
-	private static final String DEMO_FILE = "/home/pete/Documents/people/felicia/data-short.csv"
+	private static final String DEMO_FILE = "" // "/home/pete/Documents/people/felicia/data-short.csv"
 
 	@Override
 	boolean requiresUserInteraction() {
@@ -30,7 +30,7 @@ class LoadData extends ElectrodesPhase {
 			return true
 		}
 
-		dispatchIndeterminateProgressEvent( "Choosing data file to load..." )
+		dispatchProgressEvent( 0, "Choosing data file to load..." )
 
 		JFileChooser fc = new SwingBuilder().fileChooser(
 			dialogTitle: "Load electrodes data file",

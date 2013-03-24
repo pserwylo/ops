@@ -75,7 +75,7 @@ abstract class DataMungingGui implements ProgressListener {
 			}
 		}
 
-		phaseRunner.nextPhase        = phases[ 0 ]
+		phaseRunner = new PhaseRunner( phases[ 0 ] )
 		new Thread( phaseRunner ).run()
 	}
 
@@ -145,7 +145,7 @@ abstract class DataMungingGui implements ProgressListener {
 		// TODO: Navigate to GitHub wiki.
 	}
 
-	PhaseRunner phaseRunner = new PhaseRunner()
+	PhaseRunner phaseRunner
 
 	def phaseDone = {
 		println "Y: Clicked done. Queuing next phase."
@@ -155,7 +155,10 @@ abstract class DataMungingGui implements ProgressListener {
 			if ( index < phases.size() - 1 ) {
 				Phase next = phases[ index + 1 ]
 				println "Y: Next phase will be - $next"
-				phaseRunner.nextPhaseAfterGui = next
+				synchronized ( phaseRunner.guiWaitLock ) {
+					phaseRunner.nextPhaseAfterGui = next
+					phaseRunner.guiWaitLock.notify()
+				}
 			} else {
 				println "Y: All completed"
 				phaseRunner.allCompleted = true
@@ -169,12 +172,17 @@ abstract class DataMungingGui implements ProgressListener {
 
 	class PhaseRunner implements Runnable {
 
-		public  Phase   nextPhase
-		public  Phase   nextPhaseAfterGui
-		public  boolean allCompleted = false
+		public Phase   nextPhase
+		public Phase   nextPhaseAfterGui
+		public boolean allCompleted = false
+		public final Object guiWaitLock = new Object()
 
 		private Phase   currentPhase
 		private boolean pendingGuiResponse = false
+
+		PhaseRunner( Phase firstPhase ) {
+			nextPhase = firstPhase
+		}
 
 		@Override
 		void run() {
@@ -213,9 +221,11 @@ abstract class DataMungingGui implements ProgressListener {
 					pendingGuiResponse = false
 				}
 
-				if ( pendingGuiResponse || !currentPhase ) {
-					// println pendingGuiResponse ? "X: - pending gui" : "X: - current phase"
-					continue
+				if ( pendingGuiResponse ) {
+					synchronized ( guiWaitLock ) {
+						guiWaitLock.wait()
+						continue
+					}
 				}
 
 				if ( !currentPhase.requiresUserInteraction() ) {

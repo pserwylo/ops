@@ -46,7 +46,7 @@ class AverageElectrodes extends ElectrodesPhase {
 
 			for ( def row in startRow..endRow ) {
 
-				if ( row % oneHundredth == 0 ) {
+				if ( oneHundredth > 0 && row % oneHundredth == 0 ) {
 					double miniProgress = ( row - startRow ) / ( endRow - startRow )
 					double absoluteMini = miniProgress * progressLeap
 					totalProgress       = baseProgress + absoluteMini
