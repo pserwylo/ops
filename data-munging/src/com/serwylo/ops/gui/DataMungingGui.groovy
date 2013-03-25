@@ -4,16 +4,19 @@ import com.serwylo.ops.Phase
 import com.serwylo.ops.Phase.ProgressListener
 import com.serwylo.ops.PhaseFailedException
 import groovy.swing.SwingBuilder
+import org.codehaus.groovy.runtime.ExceptionUtils
 
 import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JLabel
+import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JProgressBar
 import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.Dimension
 
 abstract class DataMungingGui implements ProgressListener {
 
@@ -38,12 +41,13 @@ abstract class DataMungingGui implements ProgressListener {
 		createPhaseComponents()
 
 		ui.edt {
-			windowFrame = frame( title : title, size : [ 800, 640 ], show : true, defaultCloseOperation: JFrame.EXIT_ON_CLOSE ) {
+			windowFrame = frame( title : title, size : [ 800, 640 ] as Dimension, show : true, defaultCloseOperation: JFrame.EXIT_ON_CLOSE ) {
 				borderLayout()
 
 				menuBar( constraints : BorderLayout.NORTH ) {
 					menu( label : "File", mnemonic: "f" ) {
-						menuItem( label : "Quit", mnemonic: "q", actionPerformed : quit )
+						menuItem( label : "Settings", mnemonic: "s", actionPerformed : prefs )
+						menuItem( label : "Quit",     mnemonic: "q", actionPerformed : quit  )
 					}
 					menu( label : "Help", mnemonic: "h" ) {
 						menuItem( label : "Instructions", mnemonic: "i", actionPerformed : help )
@@ -56,8 +60,10 @@ abstract class DataMungingGui implements ProgressListener {
 
 				panel( constraints : BorderLayout.CENTER ) {
 					boxLayout( axis : BoxLayout.Y_AXIS )
-					currentPhasePanel      = panel( constraints : BorderLayout.CENTER )
-					currentPhaseDoneButton = button( "Done", actionPerformed: phaseDone, constraints: BorderLayout.SOUTH )
+					currentPhasePanel      = panel( constraints : BorderLayout.CENTER ) {
+						button( label: "Start", actionPerformed: start )
+					}
+					currentPhaseDoneButton = button( "Done", actionPerformed: phaseDone, constraints: BorderLayout.SOUTH, visible: false )
 				}
 
 				panel( constraints: BorderLayout.SOUTH ) {
@@ -74,9 +80,6 @@ abstract class DataMungingGui implements ProgressListener {
 				}
 			}
 		}
-
-		phaseRunner = new PhaseRunner( phases[ 0 ] )
-		new Thread( phaseRunner ).run()
 	}
 
 	abstract List<Phase> getPhases()
@@ -117,24 +120,39 @@ abstract class DataMungingGui implements ProgressListener {
 	}
 
 	private void highlightPhase( Phase phase ) {
-		try {
-			getLabelFor( phase ).foreground = COLOUR_CURRENT_PHASE
-			resetProgress()
-			phase.progressListener = this
-			JComponent gui         = phase.gui
-			if ( gui ) {
-				currentPhasePanel.add( gui )
-				currentPhasePanel.revalidate()
-				currentPhasePanel.repaint()
-			}
-			currentPhaseDoneButton.visible = phase.requiresUserInteraction()
-		} catch ( PhaseFailedException e ) {
-			System.err.println "Failed phase $e.phase.name: $e.message"
+		getLabelFor( phase ).foreground = COLOUR_CURRENT_PHASE
+		resetProgress()
+		phase.progressListener = this
+		JComponent gui         = phase.gui
+		if ( gui ) {
+			currentPhasePanel.add( gui )
+			currentPhasePanel.revalidate()
+			currentPhasePanel.repaint()
 		}
+		currentPhaseDoneButton.visible = phase.requiresUserInteraction()
 	}
 
 	private JLabel getLabelFor( Phase phase ) {
 		phaseComponents.getAt( phase )
+	}
+
+	protected def prefs = {
+		new PreferencesDialog()
+	}
+
+	protected def start = {
+		if ( phaseRunner ) {
+			unhighlightPhase( phaseRunner.currentPhase )
+			phaseRunner.stop()
+			phaseRunner.destroy()
+			resetProgress()
+		}
+
+		currentPhasePanel.removeAll()
+		ui.doOutside {
+			phaseRunner = new PhaseRunner( phases[ 0 ] )
+			phaseRunner.run()
+		}
 	}
 
 	protected def quit = {
@@ -170,7 +188,7 @@ abstract class DataMungingGui implements ProgressListener {
 		currentPhase
 	}
 
-	class PhaseRunner implements Runnable {
+	class PhaseRunner extends Thread {
 
 		public Phase   nextPhase
 		public Phase   nextPhaseAfterGui
@@ -187,72 +205,78 @@ abstract class DataMungingGui implements ProgressListener {
 		@Override
 		void run() {
 
-			while ( true ) {
+			try {
 
-				if ( allCompleted ) {
-					println "X: All completed. Bailing loop."
-					break
-				}
+				while ( true ) {
 
-				if ( nextPhase ) {
-					println "X: Next phase ($nextPhase)"
-					if ( currentPhase ) {
-						println "X: First, lets unhighlight $currentPhase"
-						unhighlightPhase( currentPhase )
+					if ( allCompleted ) {
+						println "X: All completed. Bailing loop."
+						break
 					}
-					println "X: Starting phase $nextPhase"
-					currentPhase = nextPhase
-					println "X: Highlighting phase - $currentPhase"
-					highlightPhase( currentPhase )
-					nextPhase          = null
-					nextPhaseAfterGui  = null
-					pendingGuiResponse = false
-				}
 
-				if ( nextPhaseAfterGui ) {
-					println "X: Gui phase - about to start next phase. Lets execute first."
-					if ( !currentPhase.execute() ) {
-						nextPhaseAfterGui = null
-						continue
+					if ( nextPhase ) {
+						println "X: Next phase ($nextPhase)"
+						if ( currentPhase ) {
+							println "X: First, lets unhighlight $currentPhase"
+							unhighlightPhase( currentPhase )
+						}
+						println "X: Starting phase $nextPhase"
+						currentPhase = nextPhase
+						println "X: Highlighting phase - $currentPhase"
+						highlightPhase( currentPhase )
+						nextPhase          = null
+						nextPhaseAfterGui  = null
+						pendingGuiResponse = false
 					}
-					println "X: Done executing gui phase"
-					nextPhase          = nextPhaseAfterGui
-					nextPhaseAfterGui  = null
-					pendingGuiResponse = false
-				}
 
-				if ( pendingGuiResponse ) {
-					synchronized ( guiWaitLock ) {
-						guiWaitLock.wait()
-						continue
+					if ( nextPhaseAfterGui ) {
+						println "X: Gui phase - about to start next phase. Lets execute first."
+						if ( !currentPhase.execute() ) {
+							nextPhaseAfterGui = null
+							continue
+						}
+						println "X: Done executing gui phase"
+						nextPhase          = nextPhaseAfterGui
+						nextPhaseAfterGui  = null
+						pendingGuiResponse = false
 					}
-				}
 
-				if ( !currentPhase.requiresUserInteraction() ) {
-
-					boolean continueOn = false
-					while ( !continueOn ) {
-						println "X: No interaction, attempting execution"
-						continueOn = currentPhase.execute()
-						if ( continueOn ) {
-							println "X: Execution fine, roceeding"
+					if ( pendingGuiResponse ) {
+						synchronized ( guiWaitLock ) {
+							guiWaitLock.wait()
+							continue
 						}
 					}
 
-					int index = getPhases().indexOf( currentPhase )
-					if ( index != -1 ) {
-						if ( index < getPhases().size() - 1 ) {
-							println "X: Completed no interaction, queueing next phase"
-							nextPhase = getPhases()[ index + 1 ]
-						} else {
-							println "X: Completed no interaction, all completed"
-							allCompleted = true
+					if ( !currentPhase.requiresUserInteraction() ) {
+
+						boolean continueOn = false
+						while ( !continueOn ) {
+							println "X: No interaction, attempting execution"
+							continueOn = currentPhase.execute()
+							if ( continueOn ) {
+								println "X: Execution fine, roceeding"
+							}
 						}
+
+						int index = getPhases().indexOf( currentPhase )
+						if ( index != -1 ) {
+							if ( index < getPhases().size() - 1 ) {
+								println "X: Completed no interaction, queueing next phase"
+								nextPhase = getPhases()[ index + 1 ]
+							} else {
+								println "X: Completed no interaction, all completed"
+								allCompleted = true
+							}
+						}
+					} else {
+						pendingGuiResponse = true
+						println "X: Pending gui response"
 					}
-				} else {
-					pendingGuiResponse = true
-					println "X: Pending gui response"
 				}
+			} catch ( PhaseFailedException e ) {
+				JOptionPane.showMessageDialog( null, e.message, "An error occurred", JOptionPane.ERROR_MESSAGE )
+				System.err.println "Failed phase $e.phase.name: $e.message"
 			}
 		}
 	}
