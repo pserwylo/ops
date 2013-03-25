@@ -44,15 +44,9 @@ class PreferencesDialog {
 		dialog.visible = false
 	}
 
-	protected void setOfficeDirectory( String dir, boolean suppressDialog = false ) {
-		String existingText = OpsPreferences.instance.officePath
-
+	protected void setOfficeDirectory( String dir ) {
 		fieldOfficeDirectory.text          = dir
 		OpsPreferences.instance.officePath = dir
-
-		if ( !suppressDialog && dir != existingText ) {
-			JOptionPane.showMessageDialog( null, "You will need to restart the application for this to take effect." )
-		}
 	}
 
 	public def persistOfficeDirectory = {
@@ -75,10 +69,10 @@ class PreferencesDialog {
 			finder.searchDir    = fc.selectedFile
 			try {
 				OfficePath path = finder.path
-				setOfficeDirectory( path.binaryFile.absolutePath, true )
+				setOfficeDirectory( path.binaryFile.absolutePath )
 			} catch ( OfficeNotFoundException e ) {
 				JOptionPane.showMessageDialog( dialog, "Could not find OpenOffice or LibreOffice in this folder.", "Office not found", JOptionPane.ERROR_MESSAGE )
-				setOfficeDirectory( "", true )
+				setOfficeDirectory( "" )
 			}
 
 		}
