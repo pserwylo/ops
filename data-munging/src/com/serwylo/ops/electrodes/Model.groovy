@@ -9,6 +9,8 @@ import com.sun.star.sheet.XSpreadsheetDocument
 
 class Model {
 
+	private static final String FILE_SUFFIX      = "-avg"
+
 	SpreadsheetConnector connector
 	XSpreadsheetDocument document                = null
 	CsvOptions options                           = null
@@ -26,6 +28,14 @@ class Model {
 		this.options = options
 		connector    = new SpreadsheetConnector( OpsPreferences.instance.officePath )
 		document     = connector.open( file.absolutePath, options )
+	}
+
+	void save() {
+		int dotIndex     = file.name.lastIndexOf( '.' )
+		String name      = file.name.substring( 0, dotIndex )
+		String extension = file.name.substring( dotIndex )
+		String newName   = "$name$FILE_SUFFIX$extension"
+		connector.save( document, new File( file.parent, newName ).absolutePath )
 	}
 
 

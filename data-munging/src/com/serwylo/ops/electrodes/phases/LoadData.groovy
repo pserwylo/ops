@@ -9,7 +9,7 @@ import javax.swing.*
 
 class LoadData extends ElectrodesPhase {
 
-	private static final String DEMO_FILE = "/home/pete/Documents/people/felicia/data-short.csv"
+	private static final String DEMO_FILE = "" // "/home/pete/Documents/people/felicia/data-short.csv"
 
 	@Override
 	boolean requiresUserInteraction() {
@@ -76,7 +76,7 @@ class LoadData extends ElectrodesPhase {
 
 		@Override
 		boolean accept(File file) {
-			file.isDirectory() || file.path.toLowerCase().endsWith( "*.csv" )
+			file.isDirectory() || file.path.toLowerCase().endsWith( ".csv" )
 		}
 	}
 

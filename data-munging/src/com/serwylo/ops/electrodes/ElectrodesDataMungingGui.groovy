@@ -28,6 +28,7 @@ class ElectrodesDataMungingGui extends DataMungingGui {
 		new SpecifySuspectElectrodes( data: model ),
 		new SpecifyElectrodesToAverage( data: model ),
 		new AverageElectrodes( data: model ),
+		new SaveData( data: model ),
 	]
 
 	@Override

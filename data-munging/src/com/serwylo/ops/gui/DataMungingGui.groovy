@@ -278,6 +278,9 @@ abstract class DataMungingGui implements ProgressListener {
 				JOptionPane.showMessageDialog( null, e.message, "An error occurred", JOptionPane.ERROR_MESSAGE )
 				System.err.println "Failed phase $e.phase.name: $e.message"
 			}
+			resetProgress()
+			unhighlightPhase( currentPhase )
+			JOptionPane.showMessageDialog( null, "Averaging process complete!" )
 		}
 	}
 
