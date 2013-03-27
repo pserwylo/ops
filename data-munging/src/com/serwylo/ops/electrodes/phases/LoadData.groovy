@@ -5,8 +5,7 @@ import com.serwylo.uno.spreadsheet.CsvOptions
 import com.sun.star.comp.helper.BootstrapException
 import groovy.swing.SwingBuilder
 
-import javax.swing.JFileChooser
-import javax.swing.JOptionPane
+import javax.swing.*
 
 class LoadData extends ElectrodesPhase {
 
@@ -23,8 +22,8 @@ class LoadData extends ElectrodesPhase {
 	}
 
 	String errorMessage( BootstrapException e ) {
-		while ( e.targetException != null && e.targetException != e ) {
-			e = e.targetException
+		while ( e.targetException != null && e.targetException != e && e.targetException instanceof BootstrapException ) {
+			e = (BootstrapException)e.targetException
 		}
 		e.message
 	}

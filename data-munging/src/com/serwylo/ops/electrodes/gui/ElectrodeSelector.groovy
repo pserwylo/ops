@@ -8,23 +8,21 @@ import com.kitfox.svg.animation.AnimationElement
 import com.kitfox.svg.app.beans.SVGPanel
 import sun.awt.image.ImageFormatException
 
-import javax.swing.JOptionPane
-import javax.swing.JPanel
-import java.awt.Color
-import java.awt.Dimension
-import java.awt.Point
+import javax.swing.*
+import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.geom.Point2D
+import java.util.List
 
 class ElectrodeSelector extends JPanel {
 
-	private SVGPanel panel
-	private SVGDiagram diagram
-	private SVGElement keyNormal, keyDead, keyWeird, keySelected
-	private Map<String, Integer> electrodeLabels
+	protected SVGPanel panel
+	protected SVGDiagram diagram
+	protected SVGElement keyNormal, keyDead, keyWeird, keySelected
+	protected Map<String, Integer> electrodeLabels
 
-	private List<String> deadElectrodes = [],
+	protected List<String> deadElectrodes = [],
 		weirdElectrodes         = [],
 		selectedElectrodes      = [],
 		forceSelectedElectrodes = [],
@@ -87,7 +85,7 @@ class ElectrodeSelector extends JPanel {
 		panel.setMinimumSize( size )
 	}
 
-	private void validateItemsInImage() {
+	protected void validateItemsInImage() {
 		electrodeLabels.each { entry ->
 			String colName     = entry.key
 			SVGElement element = diagram.getElement( colName )
@@ -163,8 +161,9 @@ class ElectrodeSelector extends JPanel {
 	}
 
 	public void setWeirdElectrodes( List<String> electrodes ) {
-		this.weirdElectrodes.each { colName -> reset( diagram.getElement( colName ) ) }
+		List<String> nonWeird = this.weirdElectrodes - electrodes
 		this.weirdElectrodes = electrodes
+		nonWeird.each { colName -> reset( diagram.getElement( colName ) ) }
 		this.weirdElectrodes.each { colName -> weird( diagram.getElement( colName ) ) }
 	}
 
@@ -184,22 +183,25 @@ class ElectrodeSelector extends JPanel {
 		}
 	}
 
-	private void markUnselected( String electrode ) {
+	protected void markUnselected( String electrode ) {
 		selectedElectrodes.remove( electrode )
 		unselected( diagram.getElement( electrode ) )
 		panel.repaint()
 	}
 
-	private void markSelected( String electrode ) {
+	protected void markSelected( String electrode ) {
 		selectedElectrodes.add( electrode )
 		selected( diagram.getElement( electrode ) )
 		panel.repaint()
 	}
 
-	private void reset( SVGElement element ) {
+	protected void reset( SVGElement element ) {
 		normal( element )
 		if ( selectedElectrodes.contains( element.id ) ) {
 			selected( element )
+		}
+		if ( deadElectrodes.contains( element.id ) ) {
+			dead( element )
 		}
 		if ( weirdElectrodes.contains( element.id ) ) {
 			weird( element )
@@ -213,7 +215,7 @@ class ElectrodeSelector extends JPanel {
 	 * @param colour Color object whose html colour number you want as a string
 	 * @return # followed by exactly 6 hex digits
 	 */
-	private String colourToHex( Color colour ) {
+	protected String colourToHex( Color colour ) {
 		String string = Integer.toHexString( colour.getRGB() & 0xffffff )
 		if ( string.length() < 6 )
 		{
@@ -223,55 +225,55 @@ class ElectrodeSelector extends JPanel {
 		return "#$string"
 	}
 
-	private void copyStrokeStyle( SVGElement from, SVGElement to ) {
+	protected void copyStrokeStyle( SVGElement from, SVGElement to ) {
 		String colourValue = colourToHex( from.getStyleAbsolute( "stroke" ).colorValue )
 		to.setAttribute( "stroke", AnimationElement.AT_CSS, colourValue )
 	}
 
-	private void copyStrokeWidthStyle( SVGElement from, SVGElement to ) {
+	protected void copyStrokeWidthStyle( SVGElement from, SVGElement to ) {
 		to.setAttribute( "stroke-width", AnimationElement.AT_CSS, from.getStyleAbsolute( "stroke-width" ).doubleValue.toString() )
 	}
 
-	private void copyFillStyle( SVGElement from, SVGElement to ) {
+	protected void copyFillStyle( SVGElement from, SVGElement to ) {
 		String colourValue = colourToHex( from.getStyleAbsolute( "fill" ).colorValue )
 		to.setAttribute( "fill", AnimationElement.AT_CSS, colourValue )
 	}
 
-	private void copyFillOpacityStyle( SVGElement from, SVGElement to ) {
+	protected void copyFillOpacityStyle( SVGElement from, SVGElement to ) {
 		to.setAttribute( "fill-opacity", AnimationElement.AT_CSS, from.getStyleAbsolute( "fill-opacity" ).doubleValue.toString() )
 	}
 
-	private void normal( SVGElement element ) {
+	protected void normal( SVGElement element ) {
 		copyFillOpacityStyle( keyNormal, element )
 		copyFillStyle( keyNormal, element )
 		copyStrokeStyle( keyNormal, element )
 		copyStrokeWidthStyle( keyNormal, element )
 	}
 
-	private void selected( SVGElement element ) {
+	protected void selected( SVGElement element ) {
 		copyFillOpacityStyle( keySelected, element )
 		copyStrokeStyle( keySelected, element )
 		copyStrokeWidthStyle( keySelected, element )
 	}
 
-	private void unselected( SVGElement element ) {
+	protected void unselected( SVGElement element ) {
 		copyFillOpacityStyle( keyNormal, element )
 		copyStrokeStyle( keyNormal, element )
 		copyStrokeWidthStyle( keyNormal, element )
 	}
 
-	private void dead( SVGElement element ) {
+	protected void dead( SVGElement element ) {
 		copyFillStyle( keyDead, element )
 	}
 
-	private void weird( SVGElement element ) {
+	protected void weird( SVGElement element ) {
 		copyFillStyle( keyWeird, element )
 	}
 
 	void resetAll() {
-		this.selectedElectrodes = []
-		this.deadElectrodes     = []
-		this.weirdElectrodes    = []
+		selectedElectrodes = []
+		deadElectrodes     = []
+		weirdElectrodes    = []
 		electrodeLabels.each { entry ->
 			reset( diagram.getElement( entry.key ) )
 		}
@@ -279,11 +281,11 @@ class ElectrodeSelector extends JPanel {
 
 	List<String> calcNearestElectrodes( String electrode, int numClosest ) {
 		SortedMap<String, Double> distanceMeasures = new TreeMap<String, Double>()
-		RenderableElement from = (RenderableElement)diagram.getElement( electrode )
+		RenderableElement from                     = (RenderableElement)diagram.getElement( electrode )
 		electrodeLabels.each { entry ->
 			RenderableElement to = (RenderableElement)diagram.getElement( entry.key )
-			Double deltaX = to.boundingBox.x - from.boundingBox.x
-			Double deltaY = to.boundingBox.y - from.boundingBox.y
+			Double deltaX        = to.boundingBox.x - from.boundingBox.x
+			Double deltaY        = to.boundingBox.y - from.boundingBox.y
 			distanceMeasures.put( entry.key, deltaX * deltaX + deltaY * deltaY )
 		}
 		List<String> sorted = distanceMeasures.sort { e1, e2 -> e1.value <=> e2.value }.keySet().toList()

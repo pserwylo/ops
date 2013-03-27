@@ -2,8 +2,8 @@ package com.serwylo.ops.electrodes.phases
 
 import com.serwylo.ops.electrodes.gui.ElectrodeSelector
 
-import javax.swing.JComponent
-import java.awt.Dimension
+import javax.swing.*
+import java.awt.*
 
 /**
  * Show a GUI with an image of the electrode cap.
@@ -14,6 +14,7 @@ import java.awt.Dimension
  */
 class SpecifyElectrodesToAverage extends ElectrodesPhase {
 
+	private double index = 0 // The node we are up to, for progress purposes...
 	ElectrodeSelector selector
 	String currentElectrode
 
@@ -36,8 +37,6 @@ class SpecifyElectrodesToAverage extends ElectrodesPhase {
 	@Override
 	boolean execute() {
 		data.electrodesToAverage[ currentElectrode ] = selector.selectedElectrodes
-		println "For $currentElectrode, averaging $selector.selectedElectrodes"
-
 		return nextElectrode() == null
 	}
 
@@ -51,7 +50,9 @@ class SpecifyElectrodesToAverage extends ElectrodesPhase {
 
 	private String nextElectrode() {
 		if ( !currentElectrode ) {
-			currentElectrode = data.confirmedDeadColumns[ 0 ]
+			if ( data.confirmedDeadColumns.size() > 0 ) {
+				currentElectrode = data.confirmedDeadColumns[ 0 ]
+			}
 		} else {
 			int index = data.confirmedDeadColumns.indexOf( currentElectrode )
 			if ( index == -1 || index >= data.confirmedDeadColumns.size() - 1 ) {
@@ -67,6 +68,10 @@ class SpecifyElectrodesToAverage extends ElectrodesPhase {
 			selector.weirdElectrodes        = [ currentElectrode ]
 			selector.unselectableElectrodes = data.confirmedDeadColumns
 			selector.selectedElectrodes     = selector.calcNearestElectrodes( currentElectrode, 8 )
+
+			dispatchProgressEvent( index / data.confirmedDeadColumns.size() * 100, "Selecting electrodes to average for $currentElectrode..." )
+
+			index ++
 		}
 
 		selector.repaint()

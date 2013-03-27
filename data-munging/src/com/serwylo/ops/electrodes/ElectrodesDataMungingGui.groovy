@@ -1,14 +1,8 @@
 package com.serwylo.ops.electrodes
 
-import com.serwylo.ops.electrodes.phases.AverageElectrodes
-import com.serwylo.ops.gui.DataMungingGui
 import com.serwylo.ops.Phase
-import com.serwylo.ops.electrodes.phases.FindEmptyElectrodes
-import com.serwylo.ops.electrodes.phases.FindWeirdElectrodes
-import com.serwylo.ops.electrodes.phases.IdentifyElectrodes
-import com.serwylo.ops.electrodes.phases.LoadData
-import com.serwylo.ops.electrodes.phases.SpecifyElectrodesToAverage
-import com.serwylo.ops.electrodes.phases.SpecifySuspectElectrodes
+import com.serwylo.ops.electrodes.phases.*
+import com.serwylo.ops.gui.DataMungingGui
 
 /**
  * Automatically load spreadsheet
@@ -30,7 +24,7 @@ class ElectrodesDataMungingGui extends DataMungingGui {
 		new LoadData( data: model ),
 		new IdentifyElectrodes( data: model ),
 		new FindEmptyElectrodes( data: model ),
-		new FindWeirdElectrodes( data: model ),
+		new SummariseElectrodes( data: model ),
 		new SpecifySuspectElectrodes( data: model ),
 		new SpecifyElectrodesToAverage( data: model ),
 		new AverageElectrodes( data: model ),

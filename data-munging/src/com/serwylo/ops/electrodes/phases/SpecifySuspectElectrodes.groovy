@@ -1,17 +1,17 @@
 package com.serwylo.ops.electrodes.phases
 
-import com.serwylo.ops.PhaseFailedException
-import com.serwylo.ops.electrodes.gui.ElectrodeSelector
+import com.serwylo.ops.electrodes.ElectrodesPreferences
+import com.serwylo.ops.electrodes.gui.WeirdElectrodeSelector
 
-import javax.swing.JComponent
-import java.awt.Dimension
+import javax.swing.*
+import java.awt.*
 
 /**
  *
  */
 class SpecifySuspectElectrodes extends ElectrodesPhase {
 
-	ElectrodeSelector selector
+	WeirdElectrodeSelector selector
 
 	@Override
 	boolean requiresUserInteraction() {
@@ -32,22 +32,22 @@ class SpecifySuspectElectrodes extends ElectrodesPhase {
 	@Override
 	boolean execute() {
 		data.confirmedDeadColumns = selector.selectedElectrodes
+		ElectrodesPreferences.weirdMin = selector.minValue
+		ElectrodesPreferences.weirdMax = selector.maxValue
 		return true
 	}
 
 	JComponent getGui() {
-		try {
-			selector = new ElectrodeSelector( data.headers.electrodeLabels )
-			selector.deadElectrodes          = data.deadColumns
-			selector.weirdElectrodes         = data.weirdColumns
-			selector.forceSelectedElectrodes = data.deadColumns
-			// selector.selectedElectrodes      = data.weirdColumns + data.deadColumns
-			selector.minimumSize             = new Dimension( 600, 400 )
-			selector.preferredSize           = new Dimension( 600, 400 )
-			selector
-		} catch ( Exception e ) {
-			throw new PhaseFailedException( this, "Error specifying suspect electrodes: $e.message", e )
+		selector = new WeirdElectrodeSelector( data )
+		selector.deadElectrodes          = data.deadColumns
+		selector.forceSelectedElectrodes = data.deadColumns
+		selector.minimumSize             = new Dimension( 600, 400 )
+		selector.preferredSize           = new Dimension( 600, 400 )
+		if ( ElectrodesPreferences.hasWeirdMax() && ElectrodesPreferences.hasWeirdMin() ) {
+			selector.minValue = ElectrodesPreferences.weirdMin
+			selector.maxValue = ElectrodesPreferences.weirdMax
 		}
+		selector
 	}
 	
 }

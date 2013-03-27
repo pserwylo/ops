@@ -6,7 +6,6 @@ import com.serwylo.uno.spreadsheet.CsvOptions
 import com.serwylo.uno.spreadsheet.SpreadsheetConnector
 import com.sun.star.comp.helper.BootstrapException
 import com.sun.star.sheet.XSpreadsheetDocument
-import ooo.connector.server.OfficePath
 
 class Model {
 
@@ -19,6 +18,8 @@ class Model {
 	List<String> weirdColumns                    = []
 	List<String> confirmedDeadColumns            = []
 	Map<String,List<String>> electrodesToAverage = [:]
+	Map<String, Double> maxValues                = [:]
+	Map<String, Double> minValues                = [:]
 
 	void load( File file, CsvOptions options ) throws BootstrapException {
 		this.file    = file
